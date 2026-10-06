@@ -1,0 +1,2794 @@
+/* ============================================================
+   ARCANA SCAN — STYLE.CSS COMPLETO
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #050407;
+    --text: #f2edf4;
+    --muted: #a49aa8;
+
+    --purple: #8d4aa8;
+    --purple-light: #d083ea;
+
+    --gold: #b8965e;
+    --gold-light: #dfc58f;
+
+    --border: rgba(199, 157, 216, .16);
+
+    --page: clamp(24px, 5vw, 82px);
+
+    --cover-width: 176px;
+    --cover-height: 264px;
+
+    --ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+
+/* ============================================================
+   BASE
+   ============================================================ */
+
+html {
+    scroll-behavior: smooth;
+    background: var(--bg);
+}
+
+body {
+    margin: 0;
+
+    min-width: 320px;
+
+    overflow-x: hidden;
+
+    color: var(--text);
+
+    background: var(--bg);
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+}
+
+body::after {
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 9000;
+
+    pointer-events: none;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            transparent 48%,
+            rgba(0, 0, 0, .48)
+        );
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+button {
+    color: inherit;
+}
+
+
+/* ============================================================
+   FUNDO CONTÍNUO — BIBLIOTECA ARCANA
+   ============================================================ */
+
+.site-library-background {
+    position: fixed;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background-image: url("BIBLIOTECA-ARCANA.png");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+
+    z-index: -2;
+    pointer-events: none;
+}
+
+.site-library-background {
+    z-index: 0;
+
+    background:
+        linear-gradient(
+            rgba(5, 4, 7, .12),
+            rgba(5, 4, 7, .12)
+        ),
+        url("BIBLIOTECA-ARCANA.jpg")
+        center top / cover
+        fixed no-repeat,
+        #050407;
+
+    filter:
+        saturate(.72)
+        contrast(1.06)
+        brightness(.58);
+
+    transform: scale(1.015);
+}
+
+.site-library-veil {
+    position: fixed;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(4, 2, 7, 0.76) 0%,
+            rgba(5, 3, 8, 0.82) 45%,
+            rgba(3, 2, 5, 0.86) 100%
+        );
+
+    z-index: -1;
+    pointer-events: none;
+}
+.site-main {
+    position: relative;
+    z-index: 2;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.site-header {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    z-index: 1000;
+
+    width: 100%;
+    height: 112px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 34px;
+
+    padding:
+        0
+        var(--page);
+
+    border-bottom:
+        1px solid
+        rgba(199, 157, 216, .12);
+
+    background:
+        rgba(4, 3, 6, .90);
+
+    backdrop-filter:
+        blur(18px);
+}
+
+
+/* LOGO */
+
+.header-logo {
+    width: 225px;
+
+    flex:
+        0 0
+        225px;
+}
+
+.header-logo img {
+    width: 100%;
+    height: 100px;
+
+    object-fit: contain;
+
+    filter:
+        drop-shadow(
+            0 0 18px
+            rgba(149, 75, 179, .28)
+        );
+}
+
+
+/* NAVEGAÇÃO */
+
+.header-navigation {
+    display: flex;
+    align-items: center;
+
+    gap: 32px;
+}
+
+.header-navigation a {
+    position: relative;
+
+    padding:
+        45px
+        0;
+
+    color:
+        #c8becd;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    letter-spacing: .05em;
+
+    transition:
+        .25s ease;
+}
+
+.header-navigation a:hover {
+    color: #fff;
+}
+
+.header-navigation a::after {
+    content: "";
+
+    position: absolute;
+
+    left: 50%;
+    bottom: 31px;
+
+    width: 0;
+    height: 1px;
+
+    transform:
+        translateX(-50%);
+
+    background:
+        var(--purple-light);
+
+    transition:
+        .25s ease;
+}
+
+.header-navigation a:hover::after {
+    width: 100%;
+}
+
+
+/* BUSCA */
+
+.header-search {
+    position: relative;
+
+    min-width: 210px;
+    max-width: 360px;
+
+    margin-left: auto;
+
+    flex: 1;
+}
+
+.header-search i {
+    position: absolute;
+
+    left: 17px;
+    top: 50%;
+
+    transform:
+        translateY(-50%);
+
+    color:
+        #9d91a2;
+
+    font-size: 13px;
+}
+
+.header-search input {
+    width: 100%;
+    height: 48px;
+
+    padding:
+        0
+        18px
+        0
+        45px;
+
+    border:
+        1px solid
+        rgba(176, 103, 207, .34);
+
+    border-radius: 26px;
+
+    outline: none;
+
+    color: #fff;
+
+    background:
+        rgba(10, 7, 13, .78);
+
+    font-size: 12px;
+}
+
+.header-search input::placeholder {
+    color:
+        #7e7383;
+}
+
+
+/* AÇÕES */
+
+.header-actions {
+    display: flex;
+
+    gap: 9px;
+}
+
+.header-icon,
+.menu-button {
+    width: 46px;
+    height: 46px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 50%;
+
+    color:
+        #cec3d3;
+
+    background:
+        rgba(8, 6, 10, .82);
+
+    cursor: pointer;
+
+    transition:
+        .25s ease;
+}
+
+.header-icon:hover,
+.menu-button:hover {
+    color: #fff;
+
+    border-color:
+        rgba(210, 159, 233, .45);
+
+    background:
+        rgba(42, 21, 50, .70);
+}
+
+.menu-button {
+    padding: 12px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    gap: 5px;
+}
+
+.menu-button span {
+    display: block;
+
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--gold),
+            #fff,
+            var(--purple-light)
+        );
+}
+
+
+/* ============================================================
+   MENU LATERAL
+   ============================================================ */
+
+.menu-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1100;
+
+    opacity: 0;
+    visibility: hidden;
+
+    background:
+        rgba(0, 0, 0, .72);
+
+    backdrop-filter:
+        blur(5px);
+
+    transition:
+        .35s ease;
+}
+
+.menu-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.side-menu {
+    position: fixed;
+
+    top: 0;
+    right: 0;
+
+    z-index: 1200;
+
+    width:
+        min(
+            430px,
+            92vw
+        );
+
+    height: 100vh;
+
+    padding:
+        30px
+        36px;
+
+    overflow-y: auto;
+
+    border-left:
+        1px solid
+        var(--border);
+
+    background:
+        radial-gradient(
+            circle at 80% 10%,
+            rgba(112, 56, 137, .18),
+            transparent 34%
+        ),
+        #08060b;
+
+    transform:
+        translateX(105%);
+
+    transition:
+        transform
+        .5s
+        var(--ease);
+}
+
+.side-menu.open {
+    transform:
+        translateX(0);
+}
+
+.side-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding-bottom: 22px;
+
+    border-bottom:
+        1px solid
+        var(--border);
+}
+
+.side-menu-header img {
+    width: 175px;
+}
+
+.menu-close {
+    width: 44px;
+    height: 44px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 50%;
+
+    color:
+        #c8bdcd;
+
+    background:
+        transparent;
+
+    font-size: 28px;
+
+    cursor: pointer;
+}
+
+.side-navigation {
+    margin-top: 24px;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.side-navigation > a,
+.lists-menu summary {
+    padding:
+        14px
+        4px;
+
+    color:
+        #b7abbc;
+
+    font-size: 14px;
+
+    letter-spacing: .09em;
+
+    text-transform: uppercase;
+
+    cursor: pointer;
+}
+
+.side-navigation > a:hover,
+.lists-menu summary:hover {
+    color: #fff;
+}
+
+.lists-menu summary {
+    list-style: none;
+}
+
+.lists-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.lists-menu summary::after {
+    content: "+";
+
+    float: right;
+
+    color:
+        var(--purple-light);
+}
+
+.lists-menu[open]
+summary::after {
+    content: "−";
+}
+
+.lists-content {
+    padding:
+        4px
+        0
+        12px
+        18px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 2px;
+
+    border-left:
+        1px solid
+        var(--border);
+}
+
+.lists-content a {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    padding:
+        9px
+        0;
+
+    color:
+        #a69aaa;
+
+    font-size: 14px;
+}
+
+.list-emoji {
+    width: 24px;
+
+    text-align: center;
+
+    font-size: 18px;
+}
+
+
+/* ============================================================
+   SEÇÕES
+   ============================================================ */
+
+.arcana-section {
+    position: relative;
+
+    width: 100%;
+
+    min-height: 720px;
+
+    overflow: hidden;
+
+    isolation: isolate;
+
+    padding:
+        120px
+        var(--page)
+        95px;
+
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(5, 4, 7, .28),
+            rgba(9, 6, 13, .16) 52%,
+            rgba(5, 4, 7, .28)
+        );
+}
+
+.arcana-section::after {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 150px;
+
+    z-index: -1;
+
+    background:
+        linear-gradient(
+            to bottom,
+            transparent,
+            rgba(3, 2, 4, .48)
+        );
+
+    pointer-events: none;
+}
+
+
+/* ============================================================
+   TÍTULOS
+   ============================================================ */
+
+.section-heading,
+.continue-heading {
+    position: relative;
+
+    z-index: 80;
+
+    width:
+        min(
+            720px,
+            90vw
+        );
+}
+
+.eyebrow {
+    display: block;
+
+    margin-bottom: 11px;
+
+    color:
+        var(--purple-light);
+
+    font-size: 9px;
+    font-weight: 700;
+
+    letter-spacing: .35em;
+
+    text-transform: uppercase;
+}
+
+.section-heading h1,
+.section-heading h2,
+.continue-heading h2 {
+    margin: 0;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size:
+        clamp(
+            46px,
+            5.3vw,
+            78px
+        );
+
+    font-weight: 400;
+
+    line-height: .96;
+
+    letter-spacing:
+        -.045em;
+}
+
+.section-heading p,
+.continue-heading > p {
+    max-width: 540px;
+
+    margin:
+        20px
+        0
+        0;
+
+    color:
+        var(--muted);
+
+    font-size: 13px;
+
+    line-height: 1.8;
+}
+
+
+/* ============================================================
+   CAPAS E CARROSSEIS
+   ============================================================ */
+
+.character-showcase {
+    position: relative;
+
+    height: 520px;
+
+    margin-top: 18px;
+}
+
+.character-carousel {
+    position: absolute;
+
+    overflow: hidden;
+}
+
+.carousel-track {
+    width: max-content;
+
+    display: flex;
+
+    will-change:
+        transform;
+}
+
+.carousel-set {
+    display: flex;
+
+    gap: 22px;
+
+    padding-right: 22px;
+}
+
+.work-card {
+    width:
+        var(--cover-width);
+
+    flex:
+        0 0
+        var(--cover-width);
+}
+
+.cover-art {
+    position: relative;
+
+    width:
+        var(--cover-width);
+
+    height:
+        var(--cover-height);
+
+    overflow: hidden;
+
+    border:
+        1px solid
+        rgba(210, 159, 233, .18);
+
+    border-radius: 4px;
+
+    background:
+        radial-gradient(
+            circle at 50% 24%,
+            hsla(
+                var(--h),
+                70%,
+                62%,
+                .42
+            ),
+            transparent 35%
+        ),
+        linear-gradient(
+            145deg,
+            hsl(
+                var(--h),
+                35%,
+                18%
+            ),
+            #08060b 70%
+        );
+
+    box-shadow:
+        0 20px 34px
+        rgba(0, 0, 0, .42);
+}
+
+.cover-art::before {
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        linear-gradient(
+            to bottom,
+            transparent 45%,
+            rgba(0, 0, 0, .72)
+        );
+}
+
+.cover-art span {
+    position: absolute;
+
+    left: 13px;
+    right: 13px;
+    bottom: 15px;
+
+    z-index: 2;
+
+    font-family:
+        Georgia,
+        serif;
+
+    font-size: 15px;
+
+    line-height: 1.15;
+}
+
+.work-card h3 {
+    margin:
+        11px
+        0
+        0;
+
+    overflow: hidden;
+
+    color:
+        #e8e1ea;
+
+    font-family:
+        Georgia,
+        serif;
+
+    font-size: 15px;
+    font-weight: 400;
+
+    white-space: nowrap;
+
+    text-overflow:
+        ellipsis;
+}
+
+
+/* ============================================================
+   PERSONAGENS
+   ============================================================ */
+
+.guardian {
+    position: absolute;
+
+    z-index: 60;
+
+    margin: 0;
+
+    pointer-events: none;
+}
+
+.guardian img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+
+    object-position:
+        center bottom;
+}
+
+.guardian figcaption {
+    position: absolute;
+
+    left: 50%;
+    bottom: 16px;
+
+    transform:
+        translateX(-50%);
+
+    min-width: 150px;
+
+    text-align: center;
+
+    text-shadow:
+        0 2px 12px #000;
+}
+
+.guardian figcaption small {
+    display: block;
+
+    color:
+        var(--gold-light);
+
+    font-size: 8px;
+
+    letter-spacing: .22em;
+}
+
+.guardian figcaption strong {
+    display: block;
+
+    margin-top: 5px;
+
+    font-family:
+        Georgia,
+        serif;
+
+    font-size: 20px;
+    font-weight: 400;
+
+    letter-spacing: .15em;
+}
+
+
+/* ============================================================
+   01 — GRANDE ACERVO
+   NYX │ CAPAS →
+   ============================================================ */
+
+.archive-section {
+    min-height: 930px;
+
+    padding-top: 150px;
+}
+
+.archive-heading {
+    margin-left:
+        clamp(
+            335px,
+            28vw,
+            455px
+        );
+}
+
+.archive-showcase {
+    height: 535px;
+}
+
+.guardian-nyx {
+    left: -28px;
+    bottom: -8px;
+
+    width:
+        clamp(
+            355px,
+            30vw,
+            485px
+        );
+}
+
+.archive-carousel {
+    left:
+        clamp(
+            320px,
+            27vw,
+            440px
+        );
+
+    right: 0;
+
+    top: 105px;
+
+    height: 395px;
+
+    z-index: 30;
+
+    -webkit-mask-image:
+        linear-gradient(
+            90deg,
+            #000 0%,
+            #000 94%,
+            transparent 100%
+        );
+
+    mask-image:
+        linear-gradient(
+            90deg,
+            #000 0%,
+            #000 94%,
+            transparent 100%
+        );
+}
+
+.archive-carousel
+.carousel-track {
+    padding-top: 42px;
+}
+
+.archive-portal {
+    position: absolute;
+
+    right: 5vw;
+    bottom: 62px;
+
+    z-index: 90;
+}
+
+.ancient-button {
+    position: relative;
+
+    min-width: 280px;
+    min-height: 58px;
+
+    padding:
+        0
+        24px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 14px;
+
+    border:
+        1px solid
+        rgba(213, 177, 116, .34);
+
+    border-radius:
+        4px 18px 4px 18px;
+
+    color:
+        #e5d8be;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(34, 24, 36, .92),
+            rgba(11, 8, 13, .96)
+        );
+
+    box-shadow:
+        inset 0 0 22px
+        rgba(184, 150, 94, .06),
+        0 14px 34px
+        rgba(0, 0, 0, .35);
+
+    font-size: 11px;
+
+    letter-spacing: .12em;
+
+    text-transform: uppercase;
+
+    transition:
+        .3s ease;
+}
+
+.ancient-button:hover {
+    transform:
+        translateY(-2px);
+
+    border-color:
+        rgba(223, 197, 143, .58);
+}
+
+.keyhole {
+    width: 10px;
+    height: 16px;
+
+    border:
+        1px solid
+        var(--gold-light);
+
+    border-radius:
+        50% 50% 35% 35%;
+
+    opacity: .8;
+}
+
+
+/* ============================================================
+   02 — ORDEM DOS ARQUIVISTAS
+   ============================================================ */
+
+.order-section {
+    min-height: 490px;
+
+    padding-top: 68px;
+    padding-bottom: 68px;
+}
+
+.order-wrapper {
+    position: relative;
+
+    z-index: 20;
+
+    display: grid;
+
+    grid-template-columns:
+        260px 1fr;
+
+    gap: 42px;
+
+    align-items: center;
+}
+
+.order-identity {
+    position: relative;
+
+    height: 355px;
+}
+
+.order-identity
+.eyebrow {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    z-index: 4;
+}
+
+.order-lucien {
+    position: absolute;
+
+    left: 50%;
+    bottom: 0;
+
+    height: 335px;
+
+    max-width: 100%;
+
+    transform:
+        translateX(-50%);
+
+    object-fit: contain;
+
+    object-position:
+        center bottom;
+}
+
+.order-actions {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(
+                0,
+                1fr
+            )
+        );
+
+    gap: 18px;
+}
+
+.order-card {
+    position: relative;
+
+    min-height: 155px;
+
+    padding: 24px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 16px;
+
+    border:
+        1px solid
+        rgba(203, 154, 224, .16);
+
+    border-radius: 8px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(20, 13, 24, .74),
+            rgba(7, 5, 9, .90)
+        );
+
+    transition:
+        .3s
+        var(--ease);
+}
+
+.order-card:hover {
+    transform:
+        translateY(-3px);
+
+    border-color:
+        rgba(203, 154, 224, .36);
+}
+
+.order-icon {
+    width: 52px;
+    height: 52px;
+
+    flex:
+        0 0
+        52px;
+
+    display: grid;
+
+    place-items: center;
+
+    border:
+        1px solid
+        rgba(211, 166, 231, .25);
+
+    border-radius: 50%;
+
+    color:
+        var(--gold-light);
+
+    font-size: 21px;
+}
+
+.brand-icon {
+    font-size: 27px;
+}
+
+.order-card strong {
+    display: block;
+
+    font-family:
+        Georgia,
+        serif;
+
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.order-card small {
+    display: block;
+
+    margin-top: 7px;
+
+    color:
+        #8b808f;
+
+    font-size: 10px;
+}
+
+.card-arrow {
+    position: absolute;
+
+    right: 18px;
+
+    color:
+        var(--purple-light);
+
+    font-size: 10px;
+}
+
+.social-card {
+    flex-direction: column;
+
+    justify-content: center;
+
+    text-align: center;
+}
+
+.social-card strong {
+    margin-bottom: 14px;
+}
+
+.social-icons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 16px;
+}
+
+.social-icons a {
+    width: 47px;
+    height: 47px;
+
+    display: grid;
+
+    place-items: center;
+
+    border:
+        1px solid
+        rgba(203, 154, 224, .27);
+
+    border-radius: 50%;
+
+    color:
+        var(--gold-light);
+
+    font-size: 22px;
+
+    transition:
+        .25s ease;
+}
+
+.social-icons a:hover {
+    color: #fff;
+
+    border-color:
+        var(--purple-light);
+
+    background:
+        rgba(94, 43, 113, .34);
+}
+
+
+/* ============================================================
+   03 — CONTINUAR MERGULHANDO
+
+   COBY ATRÁS DA PALAVRA
+   ============================================================ */
+
+.continue-section {
+    min-height: 700px;
+}
+
+.continue-heading {
+    overflow: visible;
+}
+
+.continue-title {
+    position: relative;
+
+    overflow: visible;
+}
+
+.continue-title h2 {
+    position: relative;
+
+    overflow: visible;
+}
+
+
+/* ============================================================
+   MERGULHANDO
+
+   A palavra cria o contexto de camadas.
+   O texto ficará na frente do Coby.
+   ============================================================ */
+
+.mergulhando-word {
+    position: relative;
+
+    z-index: 0;
+
+    isolation: isolate;
+
+    display: inline-block;
+
+    width: max-content;
+
+    overflow: visible;
+}
+
+
+/* ============================================================
+   COBY PENDURADO ATRÁS DE "MERGULHANDO"
+
+   IMPORTANTE:
+
+   z-index: -1
+
+   faz o Coby passar ATRÁS das letras.
+
+   Assim, quando a imagem atravessar o final
+   da palavra, "Mergulhando" continuará
+   aparecendo na frente dele.
+   ============================================================ */
+
+.mergulhando-word
+.continue-coby {
+    position: absolute;
+
+    z-index: -1;
+
+    width: 195px;
+    height: auto;
+
+    max-width: none;
+
+    right: -75px;
+
+top: -26px;
+
+    transform:
+        rotate(3deg);
+
+    transform-origin:
+        50% 35%;
+
+    pointer-events: none;
+
+    user-select: none;
+
+    filter:
+        drop-shadow(
+            0 18px 20px
+            rgba(0, 0, 0, .62)
+        )
+        drop-shadow(
+            0 0 18px
+            rgba(149, 75, 179, .12)
+        );
+}
+
+
+/* OBRAS QUE O LEITOR ESTAVA LENDO */
+
+.streaming-row {
+    position: relative;
+
+    z-index: 25;
+
+    margin-top: 76px;
+
+    display: flex;
+
+    gap: 22px;
+
+    overflow-x: auto;
+
+    scrollbar-width: none;
+}
+
+.streaming-row::-webkit-scrollbar {
+    display: none;
+}
+
+.continue-card {
+    width:
+        var(--cover-width);
+
+    flex:
+        0 0
+        var(--cover-width);
+}
+
+.continue-cover {
+    width:
+        var(--cover-width);
+
+    height:
+        var(--cover-height);
+
+    border:
+        1px solid
+        rgba(210, 159, 233, .18);
+
+    border-radius: 4px;
+
+    background:
+        radial-gradient(
+            circle at 50% 25%,
+            hsla(
+                var(--h),
+                70%,
+                62%,
+                .38
+            ),
+            transparent 35%
+        ),
+        linear-gradient(
+            145deg,
+            hsl(
+                var(--h),
+                35%,
+                18%
+            ),
+            #08060b 70%
+        );
+
+    box-shadow:
+        0 18px 32px
+        rgba(0, 0, 0, .38);
+}
+
+.continue-card h3 {
+    margin:
+        11px
+        0
+        5px;
+
+    overflow: hidden;
+
+    font-family:
+        Georgia,
+        serif;
+
+    font-size: 15px;
+    font-weight: 400;
+
+    white-space: nowrap;
+
+    text-overflow:
+        ellipsis;
+}
+
+.continue-card p {
+    margin: 0;
+
+    color:
+        #8b808f;
+
+    font-size: 10px;
+}
+
+.progress {
+    height: 3px;
+
+    margin-top: 10px;
+
+    overflow: hidden;
+
+    border-radius: 10px;
+
+    background:
+        rgba(255, 255, 255, .08);
+}
+
+.progress span {
+    display: block;
+
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--purple),
+            var(--purple-light)
+        );
+}
+
+
+/* ============================================================
+   04 — FORJA
+
+   CAPAS → │ ELARA
+   ============================================================ */
+
+.forge-section {
+    min-height: 930px;
+}
+
+.forge-heading {
+    margin-left: auto;
+
+    margin-right:
+        clamp(
+            330px,
+            28vw,
+            455px
+        );
+}
+
+.forge-showcase {
+    height: 530px;
+}
+
+.guardian-elara {
+    right: -20px;
+    bottom: -8px;
+
+    width:
+        clamp(
+            340px,
+            29vw,
+            465px
+        );
+}
+
+.forge-carousel {
+    left: 0;
+
+    right:
+        clamp(
+            310px,
+            27vw,
+            435px
+        );
+
+    top: 115px;
+
+    height: 395px;
+
+    z-index: 30;
+
+    -webkit-mask-image:
+        linear-gradient(
+            90deg,
+            transparent 0%,
+            #000 6%,
+            #000 100%
+        );
+
+    mask-image:
+        linear-gradient(
+            90deg,
+            transparent 0%,
+            #000 6%,
+            #000 100%
+        );
+}
+
+.forge-carousel
+.carousel-track {
+    padding-top: 42px;
+}
+
+.forge-button {
+    position: absolute;
+
+    left:
+        var(--page);
+
+    bottom: 60px;
+
+    z-index: 90;
+}
+
+
+/* ============================================================
+   05 — OBRAS MAIS LIDAS
+
+   CAPAS → │ COBY
+   ============================================================ */
+
+.popular-section {
+    min-height: 760px;
+}
+
+.popular-wrapper {
+    position: relative;
+
+    z-index: 20;
+
+    margin-top: 30px;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(
+            0,
+            1fr
+        )
+        390px;
+
+    gap: 28px;
+
+    align-items: center;
+}
+
+.popular-carousel {
+    position: relative;
+
+    height: 390px;
+
+    overflow: hidden;
+}
+
+.popular-carousel
+.carousel-track {
+    padding-top: 42px;
+}
+
+.reader-companion {
+    margin: 0;
+
+    height: 390px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: visible;
+}
+
+
+/* COBY GRANDE NAS MAIS LIDAS */
+
+.reading-coby {
+    width: 385px;
+    height: 390px;
+
+    max-width: none;
+
+    object-fit: contain;
+
+    object-position: center;
+
+    transform:
+        scale(1.08);
+
+    transform-origin:
+        center;
+}
+
+
+/* ============================================================
+   06 — ATUALIZAÇÕES RECENTES
+
+   CAPA + TÍTULO + ÚLTIMO CAPÍTULO
+   ============================================================ */
+
+.updates-section {
+    min-height: 900px;
+}
+
+.updates-container {
+    position: relative;
+
+    z-index: 20;
+
+    max-width: 1320px;
+
+    margin-top: 46px;
+}
+
+.updates-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            6,
+            minmax(
+                0,
+                1fr
+            )
+        );
+
+    gap:
+        38px
+        24px;
+}
+
+.update-card {
+    min-width: 0;
+}
+
+.update-cover {
+    width: 100%;
+
+    aspect-ratio:
+        2 / 3;
+
+    border:
+        1px solid
+        rgba(210, 159, 233, .18);
+
+    border-radius: 4px;
+
+    background:
+        radial-gradient(
+            circle at 50% 25%,
+            hsla(
+                var(--h),
+                70%,
+                62%,
+                .38
+            ),
+            transparent 35%
+        ),
+        linear-gradient(
+            145deg,
+            hsl(
+                var(--h),
+                35%,
+                18%
+            ),
+            #08060b 70%
+        );
+
+    box-shadow:
+        0 18px 32px
+        rgba(0, 0, 0, .38);
+}
+
+.update-card h4 {
+    margin:
+        11px
+        0
+        5px;
+
+    overflow: hidden;
+
+    font-family:
+        Georgia,
+        serif;
+
+    font-size: 16px;
+    font-weight: 400;
+
+    white-space: nowrap;
+
+    text-overflow:
+        ellipsis;
+}
+
+.update-card > span {
+    color:
+        #928797;
+
+    font-size: 10px;
+}
+
+.update-day {
+    margin: 0;
+}
+
+.update-day h3 {
+    display: none;
+}
+
+
+/* PAGINAÇÃO */
+
+.pagination {
+    position: relative;
+
+    z-index: 30;
+
+    margin-top: 50px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 9px;
+}
+
+.pagination button {
+    width: 40px;
+    height: 40px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 50%;
+
+    color:
+        #a99ead;
+
+    background:
+        rgba(8, 6, 10, .78);
+
+    cursor: pointer;
+}
+
+.pagination button.active,
+.pagination button:hover {
+    color: #fff;
+
+    border-color:
+        rgba(208, 131, 234, .58);
+
+    background:
+        rgba(85, 39, 101, .50);
+}
+
+
+/* ============================================================
+   07 — RELÍQUIAS
+
+   LUCIEN │ CAPAS →
+   ============================================================ */
+
+.relics-section {
+    min-height: 910px;
+}
+
+.relics-heading {
+    margin-left:
+        clamp(
+            310px,
+            27vw,
+            430px
+        );
+}
+
+.relics-showcase {
+    height: 530px;
+}
+
+.guardian-relic {
+    left: -18px;
+    bottom: -8px;
+
+    width:
+        clamp(
+            320px,
+            27vw,
+            430px
+        );
+}
+
+.relics-carousel {
+    left:
+        clamp(
+            290px,
+            25vw,
+            400px
+        );
+
+    right: 0;
+
+    top: 115px;
+
+    height: 395px;
+
+    z-index: 30;
+
+    -webkit-mask-image:
+        linear-gradient(
+            90deg,
+            #000 0%,
+            #000 94%,
+            transparent 100%
+        );
+
+    mask-image:
+        linear-gradient(
+            90deg,
+            #000 0%,
+            #000 94%,
+            transparent 100%
+        );
+}
+
+.relics-carousel
+.carousel-track {
+    padding-top: 42px;
+}
+
+
+/* ============================================================
+   08 — HOSPEDAGENS
+   ============================================================ */
+
+.hosting-section {
+    min-height: 670px;
+}
+
+.simple-carousel {
+    position: relative;
+
+    z-index: 20;
+
+    margin-top: 44px;
+
+    display: flex;
+
+    gap: 22px;
+
+    overflow-x: auto;
+
+    padding-bottom: 14px;
+
+    scrollbar-width: none;
+}
+
+.simple-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.hosting-card {
+    width:
+        var(--cover-width);
+
+    flex:
+        0 0
+        var(--cover-width);
+}
+
+.hosting-cover {
+    width:
+        var(--cover-width);
+
+    height:
+        var(--cover-height);
+
+    border:
+        1px solid
+        rgba(210, 159, 233, .18);
+
+    border-radius: 4px;
+
+    background:
+        radial-gradient(
+            circle at 50% 25%,
+            hsla(
+                var(--h),
+                70%,
+                62%,
+                .38
+            ),
+            transparent 35%
+        ),
+        linear-gradient(
+            145deg,
+            hsl(
+                var(--h),
+                35%,
+                18%
+            ),
+            #08060b 70%
+        );
+
+    box-shadow:
+        0 18px 32px
+        rgba(0, 0, 0, .38);
+}
+
+.hosting-card small {
+    display: block;
+
+    margin-top: 10px;
+
+    color:
+        var(--purple-light);
+
+    font-size: 8px;
+
+    letter-spacing: .12em;
+
+    text-transform: uppercase;
+}
+
+.hosting-card h3 {
+    margin:
+        6px
+        0
+        0;
+
+    font-family:
+        Georgia,
+        serif;
+
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.text-link {
+    position: relative;
+
+    z-index: 30;
+
+    margin-top: 34px;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 12px;
+
+    color:
+        #c9becd;
+
+    font-size: 11px;
+
+    letter-spacing: .12em;
+
+    text-transform: uppercase;
+}
+
+.text-link:hover {
+    color: #fff;
+}
+
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+.site-footer {
+    position: relative;
+
+    z-index: 2;
+
+    padding:
+        70px
+        var(--page)
+        50px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    text-align: center;
+
+    border-top:
+        1px solid
+        rgba(199, 157, 216, .10);
+
+    background:
+        rgba(3, 3, 4, .86);
+
+    backdrop-filter:
+        blur(8px);
+}
+
+.site-footer > img {
+    width: 210px;
+}
+
+.site-footer > p {
+    margin:
+        18px
+        0
+        25px;
+
+    color:
+        #9f94a4;
+
+    font-family:
+        Georgia,
+        serif;
+
+    font-size: 15px;
+}
+
+.site-footer nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    gap: 22px;
+}
+
+.site-footer nav a {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    color:
+        #a99ead;
+
+    font-size: 11px;
+}
+
+.site-footer nav a:hover {
+    color: #fff;
+}
+
+.site-footer > small {
+    margin-top: 34px;
+
+    color:
+        #655d69;
+
+    font-size: 9px;
+
+    letter-spacing: .15em;
+}
+
+
+/* ============================================================
+   TEMA CLARO SUAVE — PROVISÓRIO
+   ============================================================ */
+
+body.soft-light-mode {
+    --text: #f7f1f8;
+    --muted: #b8adb9;
+}
+
+body.soft-light-mode
+.site-library-veil {
+    opacity: .84;
+}
+
+
+/* ============================================================
+   RESPONSIVO — 1250px
+   ============================================================ */
+
+@media (max-width: 1250px) {
+
+    .header-logo {
+        width: 195px;
+
+        flex-basis: 195px;
+    }
+
+    .header-logo img {
+        height: 90px;
+    }
+
+    .header-navigation {
+        gap: 20px;
+    }
+
+    .header-navigation a {
+        font-size: 12px;
+    }
+
+    .updates-grid {
+        grid-template-columns:
+            repeat(
+                5,
+                minmax(
+                    0,
+                    1fr
+                )
+            );
+    }
+
+}
+
+
+/* ============================================================
+   RESPONSIVO — 1100px
+   ============================================================ */
+
+@media (max-width: 1100px) {
+
+    .site-header {
+        height: 100px;
+
+        gap: 18px;
+    }
+
+    .header-logo {
+        width: 175px;
+
+        flex-basis: 175px;
+    }
+
+    .header-logo img {
+        height: 84px;
+    }
+
+    .header-search {
+        min-width: 170px;
+        max-width: 240px;
+    }
+
+
+    /* NYX */
+
+    .archive-heading {
+        margin-left: 300px;
+    }
+
+    .guardian-nyx {
+        width: 340px;
+    }
+
+    .archive-carousel {
+        left: 295px;
+    }
+
+
+    /* ELARA */
+
+    .forge-heading {
+        margin-right: 300px;
+    }
+
+    .guardian-elara {
+        width: 350px;
+    }
+
+    .forge-carousel {
+        right: 300px;
+    }
+
+
+    /* LUCIEN */
+
+    .relics-heading {
+        margin-left: 285px;
+    }
+
+    .guardian-relic {
+        width: 315px;
+    }
+
+    .relics-carousel {
+        left: 275px;
+    }
+
+
+    /* COBY MAIS LIDAS */
+
+    .popular-wrapper {
+        grid-template-columns:
+            minmax(
+                0,
+                1fr
+            )
+            315px;
+    }
+
+    .reader-companion,
+    .reading-coby {
+        width: 315px;
+        height: 350px;
+    }
+
+
+    /* ATUALIZAÇÕES */
+
+    .updates-grid {
+        grid-template-columns:
+            repeat(
+                4,
+                minmax(
+                    0,
+                    1fr
+                )
+            );
+    }
+
+}
+
+
+/* ============================================================
+   RESPONSIVO — 850px
+   ============================================================ */
+
+@media (max-width: 850px) {
+
+    :root {
+        --cover-width: 160px;
+        --cover-height: 240px;
+    }
+
+
+    /* HEADER */
+
+    .site-header {
+        height: 86px;
+
+        gap: 12px;
+    }
+
+    .header-navigation {
+        display: none;
+    }
+
+    .header-logo {
+        width: 140px;
+
+        flex-basis: 140px;
+    }
+
+    .header-logo img {
+        height: 74px;
+    }
+
+    .header-search {
+        max-width: none;
+    }
+
+
+    /* SEÇÕES */
+
+    .arcana-section {
+        min-height: auto;
+
+        padding-top: 105px;
+    }
+
+    .archive-section {
+        padding-top: 120px;
+    }
+
+
+    /* PERSONAGENS */
+
+    .archive-heading,
+    .forge-heading,
+    .relics-heading {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .archive-showcase,
+    .forge-showcase,
+    .relics-showcase {
+        height: auto;
+
+        margin-top: 25px;
+
+        display: flex;
+        flex-direction: column;
+    }
+
+    .character-showcase--right {
+        flex-direction:
+            column-reverse;
+    }
+
+    .guardian-nyx,
+    .guardian-elara,
+    .guardian-relic {
+        position: relative;
+
+        left: auto;
+        right: auto;
+        bottom: auto;
+
+        width:
+            min(
+                390px,
+                78vw
+            );
+
+        margin:
+            0
+            auto;
+    }
+
+    .archive-carousel,
+    .forge-carousel,
+    .relics-carousel {
+        position: relative;
+
+        left: auto;
+        right: auto;
+        top: auto;
+
+        width: 100%;
+        height: 340px;
+
+        margin-top: -10px;
+
+        -webkit-mask-image:
+            linear-gradient(
+                90deg,
+                transparent,
+                #000 5%,
+                #000 95%,
+                transparent
+            );
+
+        mask-image:
+            linear-gradient(
+                90deg,
+                transparent,
+                #000 5%,
+                #000 95%,
+                transparent
+            );
+    }
+
+    .archive-carousel
+    .carousel-track,
+
+    .forge-carousel
+    .carousel-track,
+
+    .relics-carousel
+    .carousel-track {
+        padding-top: 35px;
+    }
+
+    .archive-portal,
+    .forge-button {
+        position: relative;
+
+        inset: auto;
+
+        margin-top: 28px;
+    }
+
+
+    /* ORDEM */
+
+    .order-wrapper {
+        grid-template-columns:
+            1fr;
+    }
+
+    .order-identity {
+        height: 330px;
+    }
+
+    .order-lucien {
+        height: 315px;
+    }
+
+    .order-actions {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    /* COBY MAIS LIDAS */
+
+    .popular-wrapper {
+        grid-template-columns:
+            1fr;
+    }
+
+    .reader-companion {
+        height: 330px;
+    }
+
+    .reading-coby {
+        width:
+            min(
+                350px,
+                78vw
+            );
+
+        height: 330px;
+
+        margin:
+            0
+            auto;
+    }
+
+
+    /* COBY PENDURADO */
+
+    .mergulhando-word
+    .continue-coby {
+        width: 165px;
+
+        right: -65px;
+
+        top: -55px;
+
+        z-index: -1;
+    }
+
+
+    /* ATUALIZAÇÕES */
+
+    .updates-grid {
+        grid-template-columns:
+            repeat(
+                3,
+                minmax(
+                    0,
+                    1fr
+                )
+            );
+    }
+
+}
+
+
+/* ============================================================
+   RESPONSIVO — CELULAR
+   ============================================================ */
+
+@media (max-width: 620px) {
+
+    :root {
+        --cover-width: 145px;
+        --cover-height: 218px;
+
+        --page: 20px;
+    }
+
+
+    /* HEADER */
+
+    .site-header {
+        height: 76px;
+
+        padding:
+            0
+            12px;
+    }
+
+    .header-logo {
+        width: 105px;
+
+        flex-basis: 105px;
+    }
+
+    .header-logo img {
+        height: 64px;
+    }
+
+    .header-search input {
+        height: 40px;
+
+        padding-left: 38px;
+
+        font-size: 9px;
+    }
+
+    .header-icon {
+        display: none;
+    }
+
+    .menu-button {
+        width: 40px;
+        height: 40px;
+    }
+
+
+    /* MENU */
+
+    .side-navigation > a,
+    .lists-menu summary {
+        font-size: 13px;
+    }
+
+    .lists-content a {
+        font-size: 13px;
+    }
+
+
+    /* TÍTULOS */
+
+    .section-heading h1,
+    .section-heading h2,
+    .continue-heading h2 {
+        font-size:
+            clamp(
+                39px,
+                11vw,
+                55px
+            );
+    }
+
+
+    /* COBY PENDURADO */
+
+    .mergulhando-word
+    .continue-coby {
+        width: 135px;
+
+        right: -50px;
+
+        top: -45px;
+
+        z-index: -1;
+    }
+
+
+    /* CONTINUAR */
+
+    .streaming-row {
+        margin-top: 65px;
+    }
+
+
+    /* MAIS LIDAS */
+
+    .reader-companion {
+        height: 285px;
+    }
+
+    .reading-coby {
+        width:
+            min(
+                300px,
+                82vw
+            );
+
+        height: 285px;
+    }
+
+
+    /* ATUALIZAÇÕES */
+
+    .updates-grid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(
+                    0,
+                    1fr
+                )
+            );
+
+        gap:
+            28px
+            15px;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+    }
+
+}
+
+
+/* ============================================================
+   ACESSIBILIDADE — MENOS MOVIMENTO
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration:
+            .01ms !important;
+
+        animation-iteration-count:
+            1 !important;
+
+        transition-duration:
+            .01ms !important;
+
+        scroll-behavior:
+            auto !important;
+    }
+
+}
+
+/* =========================================================
+   FUNDO CONTÍNUO — BIBLIOTECA ARCANA
+   ========================================================= */
+
+html {
+    background: #050307;
+}
+
+body {
+    background-color: #050307 !important;
+
+background-image:
+    linear-gradient(
+        rgba(3, 2, 5, 0.48),
+        rgba(3, 2, 5, 0.58)
+    ),
+    url("BIBLIOTECA-ARCANA.png") !important;
+
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+}
+
+
+/* As seções precisam deixar a biblioteca aparecer */
+
+.arcana-section,
+#grande-acervo,
+#ordem,
+#continuar,
+#forja,
+#mais-lidas,
+#atualizacoes,
+#reliquias,
+#hospedagens,
+main {
+    background-color: transparent !important;
+    background-image: none !important;
+}
+
+
+/* As duas camadas antigas não são mais necessárias */
+
+.site-library-background,
+.site-library-veil {
+    display: none !important;
+}

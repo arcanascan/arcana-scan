@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="ARCANA SCAN — Uma biblioteca para aqueles que vivem entre histórias."
+    >
+
+    <title>ARCANA SCAN</title>
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+
+<body>
+
+    <!-- =====================================================
+         FUNDO CONTÍNUO DA ARCANA
+
+         A biblioteca será colocada no CSS.
+         Esta camada atravessa TODA a HOME.
+    ====================================================== -->
+
+    <div
+        class="site-library-background"
+        aria-hidden="true"
+    ></div>
+
+    <div
+        class="site-library-veil"
+        aria-hidden="true"
+    ></div>
+
+
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header
+        class="site-header"
+        id="siteHeader"
+    >
+
+        <a
+            href="#grande-acervo"
+            class="header-logo"
+            aria-label="ARCANA SCAN — Início"
+        >
+
+            <img
+                src="LOGO.png"
+                alt="ARCANA SCAN"
+            >
+
+        </a>
+
+
+        <nav
+            class="header-navigation"
+            aria-label="Navegação principal"
+        >
+
+            <a href="#grande-acervo">
+                Acervo
+            </a>
+
+            <a href="#atualizacoes">
+                Atualizações
+            </a>
+
+            <a
+                href="#"
+                data-page="generos"
+            >
+                Gêneros
+            </a>
+
+            <a
+                href="#"
+                data-page="favoritos"
+            >
+                Favoritos
+            </a>
+
+        </nav>
+
+
+        <form
+            class="header-search"
+            role="search"
+        >
+
+            <i
+                class="fa-solid fa-magnifying-glass"
+                aria-hidden="true"
+            ></i>
+
+
+            <input
+                type="search"
+                placeholder="Buscar título, autor ou gênero..."
+                aria-label="Buscar obras"
+            >
+
+        </form>
+
+
+        <div class="header-actions">
+
+            <button
+                class="header-icon"
+                type="button"
+                aria-label="Notificações"
+            >
+
+                <i class="fa-regular fa-bell"></i>
+
+            </button>
+
+
+            <button
+                class="header-icon"
+                id="themeButton"
+                type="button"
+                aria-label="Alternar tema"
+            >
+
+                <i class="fa-regular fa-moon"></i>
+
+            </button>
+
+
+            <button
+                class="menu-button"
+                id="menuButton"
+                type="button"
+                aria-label="Abrir menu"
+                aria-expanded="false"
+            >
+
+                <span></span>
+                <span></span>
+                <span></span>
+
+            </button>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =====================================================
+         MENU LATERAL
+    ====================================================== -->
+
+    <div
+        class="menu-overlay"
+        id="menuOverlay"
+    ></div>
+
+
+    <aside
+        class="side-menu"
+        id="sideMenu"
+        aria-hidden="true"
+    >
+
+        <div class="side-menu-header">
+
+            <img
+                src="LOGO.png"
+                alt="ARCANA SCAN"
+            >
+
+
+            <button
+                id="menuClose"
+                class="menu-close"
+                type="button"
+                aria-label="Fechar menu"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <nav
+            class="side-navigation"
+            aria-label="Menu da ARCANA"
+        >
+
+            <a
+                href="#"
+                data-page="perfil"
+            >
+                Perfil
+            </a>
+
+
+            <a
+                href="#"
+                data-page="generos"
+            >
+                Gêneros
+            </a>
+
+
+            <a
+                href="#"
+                data-page="favoritos"
+            >
+                Favoritos
+            </a>
+
+
+
+            <!-- =============================================
+                 MINHAS LISTAS
+            ============================================== -->
+
+            <details class="lists-menu">
+
+                <summary>
+                    Minhas Listas
+                </summary>
+
+
+                <div class="lists-content">
+
+                    <a
+                        href="#"
+                        data-list="amorzinho"
+                    >
+
+                        <span
+                            class="list-emoji"
+                            aria-hidden="true"
+                        >
+                            💕
+                        </span>
+
+                        <span>
+                            Amorzinho
+                        </span>
+
+                    </a>
+
+
+                    <a
+                        href="#"
+                        data-list="casei-com-a-putaria"
+                    >
+
+                        <span
+                            class="list-emoji"
+                            aria-hidden="true"
+                        >
+                            🔥
+                        </span>
+
+                        <span>
+                            Casei com a Putaria
+                        </span>
+
+                    </a>
+
+
+                    <a
+                        href="#"
+                        data-list="vou-sofrer"
+                    >
+
+                        <span
+                            class="list-emoji"
+                            aria-hidden="true"
+                        >
+                            🥺
+                        </span>
+
+                        <span>
+                            Vou sofrer
+                        </span>
+
+                    </a>
+
+
+                    <a
+                        href="#"
+                        data-list="ler-de-madrugada"
+                    >
+
+                        <span
+                            class="list-emoji"
+                            aria-hidden="true"
+                        >
+                            🌙
+                        </span>
+
+                        <span>
+                            Ler de madrugada
+                        </span>
+
+                    </a>
+
+
+                    <a
+                        href="#"
+                        data-list="meus-xodos"
+                    >
+
+                        <span
+                            class="list-emoji"
+                            aria-hidden="true"
+                        >
+                            👑
+                        </span>
+
+                        <span>
+                            Meus Xodós
+                        </span>
+
+                    </a>
+
+                </div>
+
+            </details>
+
+
+
+            <a href="#hospedagens">
+                Hospedagens
+            </a>
+
+
+            <a href="#ordem">
+                Recrutamento
+            </a>
+
+
+            <a
+                href="#"
+                data-page="sobre"
+            >
+                Sobre
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         CONTEÚDO PRINCIPAL
+    ====================================================== -->
+
+    <main class="site-main">
+
+
+
+        <!-- =================================================
+             01 — O GRANDE ACERVO
+
+             NYX É A ORIGEM DO CARROSSEL
+
+             NYX │ CAPA → CAPA → CAPA
+        ================================================== -->
+
+        <section
+            class="arcana-section archive-section"
+            id="grande-acervo"
+        >
+
+            <header class="section-heading archive-heading">
+
+                <span class="eyebrow">
+                    OS REGISTROS PRESERVADOS
+                </span>
+
+
+                <h1>
+                    O Grande Acervo
+                </h1>
+
+
+                <p>
+                    Histórias que já encontraram
+                    seu lugar entre os salões da ARCANA.
+                </p>
+
+            </header>
+
+
+
+            <div
+                class="
+                    character-showcase
+                    character-showcase--left
+                    archive-showcase
+                "
+            >
+
+
+                <!-- NYX -->
+
+                <figure class="guardian guardian-nyx">
+
+                    <img
+                        src="NYX.png"
+                        alt="Nyx, Guardiã do Grande Acervo"
+                    >
+
+
+                    <figcaption>
+
+                        <small>
+                            GUARDIÃ DO ACERVO
+                        </small>
+
+                        <strong>
+                            NYX
+                        </strong>
+
+                    </figcaption>
+
+                </figure>
+
+
+
+                <!-- CARROSSEL DO ACERVO -->
+
+                <div
+                    class="character-carousel archive-carousel"
+                    aria-label="Obras do Grande Acervo"
+                >
+
+                    <div
+                        class="carousel-track"
+                        id="archiveTrack"
+                    ></div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- BOTÃO DO ACERVO
+                 SEM COBY
+            -->
+
+            <div class="archive-portal">
+
+                <a
+                    href="#"
+                    class="ancient-button"
+                    data-page="acervo"
+                >
+
+                    <span
+                        class="keyhole"
+                        aria-hidden="true"
+                    ></span>
+
+
+                    <span>
+                        Explorar o Grande Acervo
+                    </span>
+
+
+                    <i
+                        class="fa-solid fa-arrow-right"
+                        aria-hidden="true"
+                    ></i>
+
+                </a>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             02 — A ORDEM DOS ARQUIVISTAS
+
+             BLOCO COMPACTO NA HOME
+        ================================================== -->
+
+        <section
+            class="arcana-section order-section"
+            id="ordem"
+        >
+
+            <div class="order-wrapper">
+
+
+                <!-- LUCIEN -->
+
+                <div class="order-identity">
+
+                    <span class="eyebrow">
+                        A ORDEM DOS ARQUIVISTAS
+                    </span>
+
+
+                    <img
+                        src="LUCIEN.png"
+                        alt="Lucien, Mestre Arquivista"
+                        class="order-lucien"
+                        loading="lazy"
+                    >
+
+                </div>
+
+
+
+                <!-- ACESSOS -->
+
+                <div class="order-actions">
+
+
+                    <!-- RECRUTAMENTO -->
+
+                    <a
+                        href="#"
+                        class="order-card"
+                        data-page="recrutamento"
+                    >
+
+                        <div class="order-icon">
+
+                            <i
+                                class="fa-solid fa-users"
+                                aria-hidden="true"
+                            ></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                Entre para a Equipe
+                            </strong>
+
+                            <small>
+                                Torne-se um Arquivista.
+                            </small>
+
+                        </div>
+
+
+                        <i
+                            class="
+                                fa-solid
+                                fa-chevron-right
+                                card-arrow
+                            "
+                            aria-hidden="true"
+                        ></i>
+
+                    </a>
+
+
+
+                    <!-- TELEGRAM -->
+
+                    <a
+                        href="#"
+                        class="order-card"
+                        aria-label="Telegram da ARCANA SCAN"
+                    >
+
+                        <div class="order-icon brand-icon">
+
+                            <i
+                                class="fa-brands fa-telegram"
+                                aria-hidden="true"
+                            ></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                Telegram
+                            </strong>
+
+                            <small>
+                                Acompanhe nossas novidades.
+                            </small>
+
+                        </div>
+
+
+                        <i
+                            class="
+                                fa-solid
+                                fa-chevron-right
+                                card-arrow
+                            "
+                            aria-hidden="true"
+                        ></i>
+
+                    </a>
+
+
+
+                    <!-- REDES -->
+
+                    <div class="order-card social-card">
+
+                        <strong>
+                            Conheça nossas Redes
+                        </strong>
+
+
+                        <div class="social-icons">
+
+                            <a
+                                href="#"
+                                aria-label="Instagram da ARCANA SCAN"
+                            >
+
+                                <i
+                                    class="fa-brands fa-instagram"
+                                    aria-hidden="true"
+                                ></i>
+
+                            </a>
+
+
+                            <a
+                                href="#"
+                                aria-label="TikTok da ARCANA SCAN"
+                            >
+
+                                <i
+                                    class="fa-brands fa-tiktok"
+                                    aria-hidden="true"
+                                ></i>
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             03 — CONTINUAR MERGULHANDO
+
+             COBY = COMPANHEIRO DO LEITOR
+        ================================================== -->
+
+        <section
+            class="arcana-section continue-section"
+            id="continuar"
+        >
+
+            <header class="continue-heading">
+
+                <div class="continue-title">
+
+                    <h2>
+
+                        Continuar
+
+                        <span class="mergulhando-word">
+
+                            Mergulhando
+
+
+                            <img
+                                src="COBY-PENDURADO.png"
+                                alt="Coby pendurado no título"
+                                class="continue-coby"
+                                loading="lazy"
+                            >
+
+                        </span>
+
+                    </h2>
+
+                </div>
+
+
+                <p>
+                    A ARCANA guardou exatamente
+                    onde você parou.
+                </p>
+
+            </header>
+
+
+
+            <div
+                class="streaming-row"
+                id="continueTrack"
+                aria-label="Continuar lendo"
+            ></div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             04 — ACABARAM DE SAIR DA FORJA
+
+             CAPA → CAPA → CAPA │ ELARA
+        ================================================== -->
+
+        <section
+            class="arcana-section forge-section"
+            id="forja"
+        >
+
+            <header class="section-heading forge-heading">
+
+                <span class="eyebrow">
+                    ATUALIZADAS HOJE
+                </span>
+
+
+                <h2>
+                    Acabaram de sair da Forja
+                </h2>
+
+            </header>
+
+
+
+            <div
+                class="
+                    character-showcase
+                    character-showcase--right
+                    forge-showcase
+                "
+            >
+
+
+                <!-- CARROSSEL -->
+
+                <div
+                    class="character-carousel forge-carousel"
+                    aria-label="Obras atualizadas hoje"
+                >
+
+                    <div
+                        class="carousel-track"
+                        id="forgeTrack"
+                    ></div>
+
+                </div>
+
+
+
+                <!-- ELARA -->
+
+                <figure class="guardian guardian-elara">
+
+                    <img
+                        src="ELARA.png"
+                        alt="Elara, Receptora Cósmica"
+                        loading="lazy"
+                    >
+
+
+                    <figcaption>
+
+                        <small>
+                            RECEPTORA CÓSMICA
+                        </small>
+
+                        <strong>
+                            ELARA
+                        </strong>
+
+                    </figcaption>
+
+                </figure>
+
+            </div>
+
+
+
+            <a
+                href="#atualizacoes"
+                class="ancient-button forge-button"
+            >
+
+                <span
+                    class="keyhole"
+                    aria-hidden="true"
+                ></span>
+
+
+                <span>
+                    Ver todas as Atualizações
+                </span>
+
+
+                <i
+                    class="fa-solid fa-arrow-right"
+                    aria-hidden="true"
+                ></i>
+
+            </a>
+
+        </section>
+
+
+
+        <!-- =================================================
+             05 — OBRAS MAIS LIDAS
+
+             COBY REPRESENTA OS LEITORES.
+
+             O COBY SERÁ GRANDE.
+             ALTURA VISUAL PRÓXIMA À ALTURA DAS CAPAS.
+        ================================================== -->
+
+        <section
+            class="arcana-section popular-section"
+            id="mais-lidas"
+        >
+
+            <header class="section-heading popular-heading">
+
+                <span class="eyebrow">
+                    OS FAVORITOS DOS LEITORES
+                </span>
+
+
+                <h2>
+                    Obras Mais Lidas
+                </h2>
+
+            </header>
+
+
+
+            <div class="popular-wrapper">
+
+
+                <!-- 10 MAIS LIDAS -->
+
+                <div
+                    class="character-carousel popular-carousel"
+                    aria-label="Dez obras mais lidas"
+                >
+
+                    <div
+                        class="carousel-track"
+                        id="popularTrack"
+                    ></div>
+
+                </div>
+
+
+
+                <!-- COBY GRANDE LENDO -->
+
+                <figure class="reader-companion">
+
+                    <img
+                        src="COBY-LENDO.png"
+                        alt="Coby sentado lendo"
+                        class="reading-coby"
+                        loading="lazy"
+                    >
+
+                </figure>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             06 — ATUALIZAÇÕES RECENTES
+
+             MAIS RECENTE → MAIS ANTIGA
+
+             NÃO MOSTRAR:
+             - DATA
+             - HOJE
+             - ONTEM
+             - HÁ X DIAS
+             - HÁ X HORAS
+
+             MOSTRAR:
+             CAPA + TÍTULO + ÚLTIMO CAPÍTULO
+        ================================================== -->
+
+        <section
+            class="arcana-section updates-section"
+            id="atualizacoes"
+        >
+
+            <header class="section-heading updates-heading">
+
+                <span class="eyebrow">
+                    OS ÚLTIMOS SETE DIAS
+                </span>
+
+
+                <h2>
+                    Atualizações Recentes
+                </h2>
+
+            </header>
+
+
+
+            <div
+                class="updates-container"
+                id="updatesContainer"
+                aria-label="Obras atualizadas recentemente"
+            ></div>
+
+
+
+            <nav
+                class="pagination"
+                id="updatesPagination"
+                aria-label="Paginação das atualizações"
+            ></nav>
+
+        </section>
+
+
+
+        <!-- =================================================
+             07 — RELÍQUIAS EM DESTAQUE
+
+             LUCIEN É A ORIGEM DO CARROSSEL.
+
+             LUCIEN │ CAPA → CAPA → CAPA
+
+             10 OBRAS MENOS LIDAS DA SEMANA.
+        ================================================== -->
+
+        <section
+            class="arcana-section relics-section"
+            id="reliquias"
+        >
+
+            <header class="section-heading relics-heading">
+
+                <span class="eyebrow">
+                    TESOUROS DO ARQUIVO
+                </span>
+
+
+                <h2>
+                    Relíquias em Destaque
+                </h2>
+
+            </header>
+
+
+
+            <div
+                class="
+                    character-showcase
+                    character-showcase--left
+                    relics-showcase
+                "
+            >
+
+
+                <!-- LUCIEN -->
+
+                <figure class="guardian guardian-relic">
+
+                    <img
+                        src="LUCIEN.png"
+                        alt="Lucien, Mestre Arquivista"
+                        loading="lazy"
+                    >
+
+
+                    <figcaption>
+
+                        <small>
+                            MESTRE ARQUIVISTA
+                        </small>
+
+                        <strong>
+                            LUCIEN
+                        </strong>
+
+                    </figcaption>
+
+                </figure>
+
+
+
+                <!-- 10 OBRAS MENOS LIDAS -->
+
+                <div
+                    class="character-carousel relics-carousel"
+                    aria-label="Obras para redescobrir"
+                >
+
+                    <div
+                        class="carousel-track"
+                        id="relicsTrack"
+                    ></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             08 — HOSPEDAGENS
+
+             OBRAS DE OUTRAS SCANS
+             PUBLICADAS DENTRO DA ARCANA
+        ================================================== -->
+
+        <section
+            class="arcana-section hosting-section"
+            id="hospedagens"
+        >
+
+            <header class="section-heading hosting-heading">
+
+                <span class="eyebrow">
+                    ACERVOS CONVIDADOS
+                </span>
+
+
+                <h2>
+                    Hospedagens
+                </h2>
+
+
+                <p>
+                    Obras de outras scans acolhidas
+                    dentro da biblioteca da ARCANA.
+                </p>
+
+            </header>
+
+
+
+            <div
+                class="simple-carousel"
+                id="hostingTrack"
+                aria-label="Obras hospedadas na ARCANA"
+            ></div>
+
+
+
+            <a
+                href="#"
+                class="text-link"
+                data-page="hospedagens"
+            >
+
+                <span>
+                    Ver todas as Hospedagens
+                </span>
+
+
+                <i
+                    class="fa-solid fa-arrow-right"
+                    aria-hidden="true"
+                ></i>
+
+            </a>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer class="site-footer">
+
+        <img
+            src="LOGO.png"
+            alt="ARCANA SCAN"
+            loading="lazy"
+        >
+
+
+        <p>
+            Uma biblioteca para aqueles que vivem entre histórias.
+        </p>
+
+
+        <nav aria-label="Redes sociais da ARCANA SCAN">
+
+            <a
+                href="#"
+                aria-label="Instagram"
+            >
+
+                <i
+                    class="fa-brands fa-instagram"
+                    aria-hidden="true"
+                ></i>
+
+                <span>
+                    Instagram
+                </span>
+
+            </a>
+
+
+            <a
+                href="#"
+                aria-label="TikTok"
+            >
+
+                <i
+                    class="fa-brands fa-tiktok"
+                    aria-hidden="true"
+                ></i>
+
+                <span>
+                    TikTok
+                </span>
+
+            </a>
+
+
+            <a
+                href="#"
+                aria-label="Telegram"
+            >
+
+                <i
+                    class="fa-brands fa-telegram"
+                    aria-hidden="true"
+                ></i>
+
+                <span>
+                    Telegram
+                </span>
+
+            </a>
+
+        </nav>
+
+
+        <small>
+            © ARCANA SCAN
+        </small>
+
+    </footer>
+
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

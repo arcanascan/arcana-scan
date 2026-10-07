@@ -2792,3 +2792,19 @@ main {
 .site-library-veil {
     display: none !important;
 }
+
+/* =========================================================
+   ATUALIZAÇÕES RECENTES — OCUPAR TODA A LARGURA
+   ========================================================= */
+
+.updates-container {
+    width: 100%;
+    max-width: none;
+    margin: 50px 0 0;
+}
+
+.updates-grid {
+    width: 100%;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 38px 24px;
+}

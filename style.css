@@ -2837,8 +2837,8 @@ main {
 @media (max-width: 620px) {
     :root {
         --page: 16px;
-        --cover-width: 132px;
-        --cover-height: 198px;
+        --cover-width: 122px;
+        --cover-height: 183px;
     }
 
     /* HEADER — mantém logo, busca e menu sem esmagar a tela */
@@ -2936,59 +2936,95 @@ main {
         line-height: 1.6;
     }
 
-    /* NYX / ELARA / LUCIEN — personagem compacto + carrossel logo abaixo */
+    /* NYX / ELARA / LUCIEN — personagem e capas LADO A LADO no celular.
+       A arquitetura continua igual à do desktop:
+       NYX/LUCIEN │ CAPAS →   e   CAPAS → │ ELARA */
     .archive-showcase,
     .forge-showcase,
     .relics-showcase,
     .character-showcase--right {
         position: relative;
         display: block;
-        height: 500px;
-        margin-top: 12px;
+        height: 300px;
+        margin-top: 18px;
+        overflow: visible;
     }
 
     .guardian-nyx,
-    .guardian-elara,
     .guardian-relic {
         position: absolute;
         top: 0;
         bottom: auto;
-        left: 50%;
+        left: -10px;
         right: auto;
-        width: 220px;
-        height: 285px;
+        width: 145px;
+        height: 292px;
         margin: 0;
-        transform: translateX(-50%);
+        transform: none;
+        z-index: 60;
+    }
+
+    .guardian-elara {
+        position: absolute;
+        top: 0;
+        bottom: auto;
+        left: auto;
+        right: -10px;
+        width: 145px;
+        height: 292px;
+        margin: 0;
+        transform: none;
+        z-index: 60;
     }
 
     .guardian figcaption {
         bottom: 5px;
+        min-width: 110px;
     }
 
     .guardian figcaption small {
-        font-size: 7px;
+        font-size: 6px;
+        letter-spacing: .16em;
     }
 
     .guardian figcaption strong {
-        font-size: 17px;
+        margin-top: 3px;
+        font-size: 15px;
     }
 
     .archive-carousel,
-    .forge-carousel,
     .relics-carousel {
         position: absolute;
-        top: 270px;
-        left: 0;
-        right: auto;
-        width: 100%;
-        height: 230px;
+        top: 28px;
+        left: 135px;
+        right: 0;
+        width: auto;
+        height: 245px;
         margin: 0;
+        z-index: 30;
+        overflow: hidden;
+        -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 90%, transparent 100%);
+        mask-image: linear-gradient(90deg, #000 0%, #000 90%, transparent 100%);
+    }
+
+    .forge-carousel {
+        position: absolute;
+        top: 28px;
+        left: 0;
+        right: 135px;
+        width: auto;
+        height: 245px;
+        margin: 0;
+        z-index: 30;
+        overflow: hidden;
+        -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 100%);
+        mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 100%);
     }
 
     .archive-carousel .carousel-track,
     .forge-carousel .carousel-track,
     .relics-carousel .carousel-track {
-        padding-top: 8px;
+        padding-top: 14px;
     }
 
     .carousel-set {

@@ -1,604 +1,361 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="description"
-        content="Perfil do Leitor — ARCANA SCAN"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Perfil do Leitor — ARCANA SCAN">
 
     <title>Perfil do Leitor | ARCANA SCAN</title>
 
-    <link
-        rel="icon"
-        type="image/png"
-        href="LOGO.png"
-    >
+    <link rel="icon" type="image/png" href="LOGO.png">
 
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     >
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <link rel="stylesheet" href="style.css">
 
-
-    <!-- =====================================================
-         ESTILOS EXCLUSIVOS DA PÁGINA DE PERFIL
-
-         Estão aqui temporariamente para não mexermos no
-         style.css da HOME neste momento.
-
-         Depois que aprovarmos o visual, podemos transferir
-         este bloco para o CSS principal.
-    ====================================================== -->
-
+    <!-- ESTILOS EXCLUSIVOS DO PERFIL -->
     <style>
 
-        /* =====================================================
-           PÁGINA
-        ====================================================== */
+        /* PÁGINA */
 
         .profile-page {
             position: relative;
             z-index: 2;
-
             min-height: 100vh;
-
-            padding:
-                155px
-                var(--page)
-                110px;
+            padding: 155px var(--page) 110px;
         }
-
 
         .profile-container {
             width: min(1280px, 100%);
             margin: 0 auto;
         }
 
-
-        /* =====================================================
-           CABEÇALHO DA PÁGINA
-        ====================================================== */
+        /* CABEÇALHO DO PERFIL */
 
         .profile-intro {
             max-width: 760px;
-
-            margin:
-                0
-                auto
-                62px;
-
+            margin: 0 auto 62px;
             text-align: center;
         }
 
-
         .profile-eyebrow {
             display: inline-block;
-
             margin-bottom: 14px;
-
             color: var(--gold-light);
-
             font-size: 9px;
             font-weight: 700;
-
             letter-spacing: .34em;
-
             text-transform: uppercase;
         }
 
-
         .profile-intro h1 {
             margin: 0;
-
             color: #f3edf5;
-
-            font-family:
-                Georgia,
-                "Times New Roman",
-                serif;
-
-            font-size:
-                clamp(
-                    42px,
-                    5vw,
-                    72px
-                );
-
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(42px, 5vw, 72px);
             font-weight: 400;
-
             line-height: .98;
-
             letter-spacing: -.035em;
-
-            text-shadow:
-                0 4px 30px
-                rgba(0, 0, 0, .78);
+            text-shadow: 0 4px 30px rgba(0, 0, 0, .78);
         }
-
 
         .profile-intro p {
             max-width: 590px;
-
-            margin:
-                22px
-                auto
-                0;
-
+            margin: 22px auto 0;
             color: #aaa0ad;
-
-            font-family:
-                Georgia,
-                "Times New Roman",
-                serif;
-
+            font-family: Georgia, "Times New Roman", serif;
             font-size: 14px;
-
             line-height: 1.8;
         }
 
-
-        /* =====================================================
-           ÁREA DE ACESSO
-        ====================================================== */
+        /* ÁREA DE ACESSO */
 
         .reader-gateway {
             position: relative;
-
             display: grid;
-
             grid-template-columns:
                 minmax(0, 1fr)
                 230px
                 minmax(0, 1fr);
-
             align-items: stretch;
-
             gap: 28px;
-
             width: 100%;
         }
 
-
-        /* =====================================================
-           FORMULÁRIOS
-        ====================================================== */
+        /* PAINÉIS DE LOGIN E CADASTRO */
 
         .reader-panel {
             position: relative;
-
             min-height: 540px;
-
-            padding:
-                42px
-                42px
-                38px;
-
+            padding: 42px 42px 38px;
             overflow: hidden;
-
-            border:
-                1px solid
-                rgba(203, 166, 217, .17);
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(13, 9, 16, .88),
-                    rgba(6, 4, 8, .78)
-                );
-
-            box-shadow:
-                0 26px 65px
-                rgba(0, 0, 0, .38);
-
-            backdrop-filter:
-                blur(7px);
+            border: 1px solid rgba(203, 166, 217, .17);
+            background: linear-gradient(
+                145deg,
+                rgba(13, 9, 16, .88),
+                rgba(6, 4, 8, .78)
+            );
+            box-shadow: 0 26px 65px rgba(0, 0, 0, .38);
+            backdrop-filter: blur(7px);
         }
-
 
         .reader-panel::before {
             content: "";
-
             position: absolute;
-
             top: 0;
             left: 34px;
             right: 34px;
-
             height: 1px;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    transparent,
-                    rgba(211, 175, 226, .48),
-                    transparent
-                );
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(211, 175, 226, .48),
+                transparent
+            );
         }
-
 
         .reader-panel::after {
             content: "";
-
             position: absolute;
-
             width: 170px;
             height: 170px;
-
             border-radius: 50%;
-
             pointer-events: none;
-
-            background:
-                radial-gradient(
-                    circle,
-                    rgba(127, 58, 153, .10),
-                    transparent 70%
-                );
+            background: radial-gradient(
+                circle,
+                rgba(127, 58, 153, .10),
+                transparent 70%
+            );
         }
-
 
         .login-panel::after {
             right: -65px;
             bottom: -70px;
         }
 
-
         .register-panel::after {
             left: -65px;
             top: -70px;
         }
 
-
         .panel-symbol {
             width: 42px;
             height: 42px;
-
             display: grid;
             place-items: center;
-
             margin-bottom: 25px;
-
-            border:
-                1px solid
-                rgba(184, 150, 94, .27);
-
+            border: 1px solid rgba(184, 150, 94, .27);
             transform: rotate(45deg);
-
             color: var(--gold-light);
-
-            background:
-                rgba(13, 9, 16, .60);
+            background: rgba(13, 9, 16, .60);
         }
-
 
         .panel-symbol i {
             transform: rotate(-45deg);
-
             font-size: 12px;
         }
 
-
         .reader-panel h2 {
-            margin:
-                0
-                0
-                8px;
-
+            margin: 0 0 8px;
             color: #eee7f0;
-
-            font-family:
-                Georgia,
-                "Times New Roman",
-                serif;
-
+            font-family: Georgia, "Times New Roman", serif;
             font-size: 28px;
-
             font-weight: 400;
-
             letter-spacing: -.02em;
         }
 
-
         .panel-description {
-            margin:
-                0
-                0
-                30px;
-
+            margin: 0 0 30px;
             color: #817787;
-
             font-size: 11px;
-
             line-height: 1.65;
         }
 
+        /* FORMULÁRIOS */
 
         .reader-auth-form {
             display: flex;
             flex-direction: column;
-
             gap: 20px;
         }
-
 
         .profile-field {
             display: flex;
             flex-direction: column;
-
             gap: 9px;
         }
 
-
         .profile-field label {
             color: #aaa0ad;
-
             font-size: 9px;
             font-weight: 700;
-
             letter-spacing: .15em;
-
             text-transform: uppercase;
         }
-
 
         .profile-input {
             width: 100%;
             height: 48px;
-
-            padding:
-                0
-                15px;
-
-            border:
-                1px solid
-                rgba(190, 147, 207, .20);
-
+            padding: 0 15px;
+            border: 1px solid rgba(190, 147, 207, .20);
             border-radius: 2px;
-
             outline: none;
-
             color: #f0ebf1;
-
-            background:
-                rgba(3, 2, 5, .56);
-
+            background: rgba(3, 2, 5, .56);
             font-size: 12px;
-
             transition:
                 border-color .25s ease,
                 box-shadow .25s ease,
                 background .25s ease;
         }
 
-
         .profile-input::placeholder {
             color: #5e5662;
         }
 
-
         .profile-input:focus {
-            border-color:
-                rgba(196, 124, 224, .60);
-
-            background:
-                rgba(7, 4, 9, .80);
-
-            box-shadow:
-                0 0 0 3px
-                rgba(137, 69, 162, .08);
+            border-color: rgba(196, 124, 224, .60);
+            background: rgba(7, 4, 9, .80);
+            box-shadow: 0 0 0 3px rgba(137, 69, 162, .08);
         }
-
 
         .forgot-password {
             align-self: flex-end;
-
             margin-top: -7px;
-
             color: #9c83a6;
-
             font-size: 9px;
-
             letter-spacing: .04em;
-
             transition: color .25s ease;
         }
-
 
         .forgot-password:hover {
             color: var(--purple-light);
         }
 
-
-        /* =====================================================
-           CHECKBOX
-        ====================================================== */
+        /* TERMOS */
 
         .terms-row {
             display: flex;
             align-items: flex-start;
-
             gap: 10px;
-
             margin-top: 2px;
         }
-
 
         .terms-row input {
             width: 14px;
             height: 14px;
-
             margin-top: 2px;
-
             accent-color: var(--purple);
         }
 
-
         .terms-row label {
             color: #817787;
-
             font-size: 9px;
-
             line-height: 1.55;
         }
-
 
         .terms-row a {
             color: #b59abb;
         }
 
-
         .terms-row a:hover {
             color: var(--purple-light);
         }
 
-
-        /* =====================================================
-           BOTÕES
-        ====================================================== */
+        /* BOTÕES */
 
         .profile-submit {
             position: relative;
-
             width: 100%;
             height: 49px;
-
             margin-top: 4px;
-
             overflow: hidden;
-
-            border:
-                1px solid
-                rgba(184, 150, 94, .42);
-
+            border: 1px solid rgba(184, 150, 94, .42);
             border-radius: 2px;
-
             cursor: pointer;
-
             color: #e9dfcf;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    rgba(91, 63, 38, .32),
-                    rgba(80, 43, 94, .34),
-                    rgba(91, 63, 38, .32)
-                );
-
+            background: linear-gradient(
+                90deg,
+                rgba(91, 63, 38, .32),
+                rgba(80, 43, 94, .34),
+                rgba(91, 63, 38, .32)
+            );
             font-size: 9px;
             font-weight: 700;
-
             letter-spacing: .23em;
-
             text-transform: uppercase;
-
             transition:
                 border-color .3s ease,
                 background .3s ease,
                 transform .3s ease;
         }
 
-
         .profile-submit:hover {
-            border-color:
-                rgba(222, 192, 137, .68);
-
-            background:
-                linear-gradient(
-                    90deg,
-                    rgba(116, 78, 44, .40),
-                    rgba(103, 50, 123, .44),
-                    rgba(116, 78, 44, .40)
-                );
-
+            border-color: rgba(222, 192, 137, .68);
+            background: linear-gradient(
+                90deg,
+                rgba(116, 78, 44, .40),
+                rgba(103, 50, 123, .44),
+                rgba(116, 78, 44, .40)
+            );
             transform: translateY(-1px);
         }
 
-
-        /* =====================================================
-           COBY — COMPANHEIRO DO LEITOR
-        ====================================================== */
+        /* COBY — COMPANHEIRO DO LEITOR */
 
         .reader-companion {
             position: relative;
-
             min-height: 540px;
-
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-
             text-align: center;
         }
 
-
         .reader-companion::before {
             content: "";
-
             position: absolute;
-
             top: 15px;
             bottom: 15px;
             left: 50%;
-
             width: 1px;
-
             transform: translateX(-50%);
-
-            background:
-                linear-gradient(
-                    to bottom,
-                    transparent,
-                    rgba(184, 150, 94, .18) 20%,
-                    rgba(186, 120, 211, .24) 50%,
-                    rgba(184, 150, 94, .18) 80%,
-                    transparent
-                );
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                rgba(184, 150, 94, .18) 20%,
+                rgba(186, 120, 211, .24) 50%,
+                rgba(184, 150, 94, .18) 80%,
+                transparent
+            );
         }
-
 
         .reader-companion-glow {
             position: absolute;
-
             width: 230px;
             height: 300px;
-
             border-radius: 50%;
-
-            background:
-                radial-gradient(
-                    ellipse,
-                    rgba(107, 49, 128, .17),
-                    rgba(48, 24, 57, .06) 45%,
-                    transparent 72%
-                );
-
+            background: radial-gradient(
+                ellipse,
+                rgba(107, 49, 128, .17),
+                rgba(48, 24, 57, .06) 45%,
+                transparent 72%
+            );
             filter: blur(5px);
         }
-
 
         .reader-coby {
             position: relative;
             z-index: 2;
-
             width: 205px;
             height: auto;
-
             margin-top: 18px;
-
             filter:
                 drop-shadow(
                     0 22px 22px
@@ -610,95 +367,61 @@
                 );
         }
 
-
         .companion-copy {
             position: relative;
             z-index: 3;
-
             width: 190px;
-
             margin-top: 17px;
         }
 
-
         .companion-copy small {
             display: block;
-
             margin-bottom: 7px;
-
             color: var(--gold-light);
-
             font-size: 7px;
             font-weight: 700;
-
             letter-spacing: .27em;
-
             text-transform: uppercase;
         }
 
-
         .companion-copy span {
             color: #887d8b;
-
-            font-family:
-                Georgia,
-                "Times New Roman",
-                serif;
-
+            font-family: Georgia, "Times New Roman", serif;
             font-size: 11px;
-
             line-height: 1.6;
         }
 
-
-        /* =====================================================
-           VOLTAR
-        ====================================================== */
+        /* VOLTAR PARA A HOME */
 
         .profile-back {
             display: flex;
             justify-content: center;
-
             margin-top: 45px;
         }
-
 
         .profile-back a {
             display: inline-flex;
             align-items: center;
-
             gap: 10px;
-
             color: #8f8492;
-
             font-size: 9px;
             font-weight: 600;
-
             letter-spacing: .16em;
-
             text-transform: uppercase;
-
             transition: color .25s ease;
         }
-
 
         .profile-back a:hover {
             color: var(--gold-light);
         }
 
-
-        /* =====================================================
-           ITEM ATIVO NO MENU
-        ====================================================== */
+        /* ITEM ATIVO NO MENU */
 
         .side-navigation a[aria-current="page"] {
             color: var(--purple-light);
         }
 
-
-        /* =====================================================
-           RESPONSIVO
-        ====================================================== */
+        /* RESPONSIVO */
 
         @media (max-width: 1050px) {
 
@@ -707,17 +430,12 @@
                     minmax(0, 1fr)
                     170px
                     minmax(0, 1fr);
-
                 gap: 18px;
             }
 
-
             .reader-panel {
-                padding:
-                    36px
-                    28px;
+                padding: 36px 28px;
             }
-
 
             .reader-coby {
                 width: 165px;
@@ -725,71 +443,51 @@
 
         }
 
-
         @media (max-width: 850px) {
 
             .profile-page {
                 padding-top: 125px;
             }
 
-
             .profile-intro {
                 margin-bottom: 45px;
             }
 
-
             .reader-gateway {
                 grid-template-columns: 1fr;
-
-                width:
-                    min(
-                        590px,
-                        100%
-                    );
-
+                width: min(590px, 100%);
                 margin: 0 auto;
-
                 gap: 22px;
             }
-
 
             .reader-panel {
                 min-height: auto;
             }
 
-
             .reader-companion {
                 min-height: 250px;
-
                 order: -1;
             }
-
 
             .reader-companion::before {
                 top: 50%;
                 bottom: auto;
                 left: 5%;
                 right: 5%;
-
                 width: 90%;
                 height: 1px;
-
                 transform: none;
-
-                background:
-                    linear-gradient(
-                        90deg,
-                        transparent,
-                        rgba(186, 120, 211, .20),
-                        transparent
-                    );
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(186, 120, 211, .20),
+                    transparent
+                );
             }
-
 
             .reader-coby {
                 width: 155px;
             }
-
 
             .companion-copy {
                 margin-top: 8px;
@@ -797,49 +495,31 @@
 
         }
 
-
         @media (max-width: 620px) {
 
             .profile-page {
-                padding:
-                    105px
-                    18px
-                    75px;
+                padding: 105px 18px 75px;
             }
-
 
             .profile-intro h1 {
-                font-size:
-                    clamp(
-                        39px,
-                        12vw,
-                        52px
-                    );
+                font-size: clamp(39px, 12vw, 52px);
             }
-
 
             .profile-intro p {
                 font-size: 12px;
             }
 
-
             .reader-panel {
-                padding:
-                    31px
-                    22px
-                    28px;
+                padding: 31px 22px 28px;
             }
-
 
             .reader-panel h2 {
                 font-size: 25px;
             }
 
-
             .reader-companion {
                 min-height: 220px;
             }
-
 
             .reader-coby {
                 width: 135px;
@@ -853,9 +533,7 @@
 
 <body>
 
-    <!-- =====================================================
-         FUNDO CONTÍNUO DA ARCANA
-    ====================================================== -->
+    <!-- FUNDO CONTÍNUO DA ARCANA -->
 
     <div
         class="site-library-background"
@@ -868,10 +546,9 @@
     ></div>
 
 
-
-    <!-- =====================================================
-         HEADER
-    ====================================================== -->
+    <!-- =========================================
+         CABEÇALHO
+    ========================================== -->
 
     <header
         class="site-header"
@@ -883,12 +560,10 @@
             class="header-logo"
             aria-label="ARCANA SCAN — Início"
         >
-
             <img
                 src="LOGO.png"
                 alt="ARCANA SCAN"
             >
-
         </a>
 
 
@@ -942,9 +617,7 @@
                 type="button"
                 aria-label="Notificações"
             >
-
                 <i class="fa-regular fa-bell"></i>
-
             </button>
 
 
@@ -954,9 +627,7 @@
                 type="button"
                 aria-label="Alternar tema"
             >
-
                 <i class="fa-regular fa-moon"></i>
-
             </button>
 
 
@@ -967,11 +638,9 @@
                 aria-label="Abrir menu"
                 aria-expanded="false"
             >
-
                 <span></span>
                 <span></span>
                 <span></span>
-
             </button>
 
         </div>
@@ -979,10 +648,9 @@
     </header>
 
 
-
-    <!-- =====================================================
+    <!-- =========================================
          MENU LATERAL
-    ====================================================== -->
+    ========================================== -->
 
     <div
         class="menu-overlay"
@@ -1002,7 +670,6 @@
                 src="LOGO.png"
                 alt="ARCANA SCAN"
             >
-
 
             <button
                 id="menuClose"
@@ -1039,12 +706,13 @@
             </a>
 
 
+            <!-- MINHAS LISTAS -->
+
             <details class="lists-menu">
 
                 <summary>
                     Minhas Listas
                 </summary>
-
 
                 <div class="lists-content">
 
@@ -1055,12 +723,8 @@
                         >
                             💕
                         </span>
-
-                        <span>
-                            Amorzinho
-                        </span>
+                        <span>Amorzinho</span>
                     </a>
-
 
                     <a href="#">
                         <span
@@ -1069,12 +733,8 @@
                         >
                             🔥
                         </span>
-
-                        <span>
-                            Casei com a Putaria
-                        </span>
+                        <span>Casei com a Putaria</span>
                     </a>
-
 
                     <a href="#">
                         <span
@@ -1083,12 +743,8 @@
                         >
                             🥺
                         </span>
-
-                        <span>
-                            Vou sofrer
-                        </span>
+                        <span>Vou sofrer</span>
                     </a>
-
 
                     <a href="#">
                         <span
@@ -1097,12 +753,8 @@
                         >
                             🌙
                         </span>
-
-                        <span>
-                            Ler de madrugada
-                        </span>
+                        <span>Ler de madrugada</span>
                     </a>
-
 
                     <a href="#">
                         <span
@@ -1111,10 +763,7 @@
                         >
                             👑
                         </span>
-
-                        <span>
-                            Meus Xodós
-                        </span>
+                        <span>Meus Xodós</span>
                     </a>
 
                 </div>
@@ -1141,19 +790,16 @@
     </aside>
 
 
-
-    <!-- =====================================================
+    <!-- =========================================
          PERFIL DO LEITOR
-    ====================================================== -->
+    ========================================== -->
 
     <main class="profile-page">
 
         <div class="profile-container">
 
 
-            <!-- =============================================
-                 APRESENTAÇÃO
-            ============================================== -->
+            <!-- APRESENTAÇÃO -->
 
             <header class="profile-intro">
 
@@ -1161,11 +807,9 @@
                     SUA IDENTIDADE NA BIBLIOTECA
                 </span>
 
-
                 <h1>
                     Perfil do Leitor
                 </h1>
-
 
                 <p>
                     Entre para continuar suas leituras,
@@ -1176,10 +820,9 @@
             </header>
 
 
-
-            <!-- =============================================
+            <!-- =====================================
                  PORTAL DO LEITOR
-            ============================================== -->
+            ====================================== -->
 
             <section
                 class="reader-gateway"
@@ -1187,9 +830,7 @@
             >
 
 
-                <!-- =========================================
-                     ENTRAR
-                ========================================== -->
+                <!-- ENTRAR -->
 
                 <article class="reader-panel login-panel">
 
@@ -1197,16 +838,12 @@
                         class="panel-symbol"
                         aria-hidden="true"
                     >
-
                         <i class="fa-solid fa-key"></i>
-
                     </div>
-
 
                     <h2>
                         Entrar
                     </h2>
-
 
                     <p class="panel-description">
                         Retorne aos seus registros
@@ -1277,10 +914,9 @@
                 </article>
 
 
-
-                <!-- =========================================
+                <!-- =====================================
                      COBY
-                ========================================== -->
+                ====================================== -->
 
                 <div
                     class="reader-companion"
@@ -1292,13 +928,11 @@
                         aria-hidden="true"
                     ></div>
 
-
                     <img
                         src="COBY.png"
                         alt="Coby, companheiro dos leitores da ARCANA"
                         class="reader-coby"
                     >
-
 
                     <div class="companion-copy">
 
@@ -1316,10 +950,9 @@
                 </div>
 
 
-
-                <!-- =========================================
+                <!-- =====================================
                      CRIAR CONTA
-                ========================================== -->
+                ====================================== -->
 
                 <article class="reader-panel register-panel">
 
@@ -1327,16 +960,12 @@
                         class="panel-symbol"
                         aria-hidden="true"
                     >
-
                         <i class="fa-regular fa-moon"></i>
-
                     </div>
-
 
                     <h2>
                         Criar conta
                     </h2>
-
 
                     <p class="panel-description">
                         Registre seu nome entre
@@ -1467,10 +1096,7 @@
             </section>
 
 
-
-            <!-- =============================================
-                 VOLTAR PARA HOME
-            ============================================== -->
+            <!-- VOLTAR PARA A BIBLIOTECA -->
 
             <div class="profile-back">
 
@@ -1494,10 +1120,9 @@
     </main>
 
 
-
-    <!-- =====================================================
-         FOOTER
-    ====================================================== -->
+    <!-- =========================================
+         RODAPÉ — REDES SOCIAIS OFICIAIS
+    ========================================== -->
 
     <footer class="site-footer">
 
@@ -1507,19 +1132,21 @@
             loading="lazy"
         >
 
-
         <p>
             Uma biblioteca para aqueles que vivem entre histórias.
         </p>
 
 
-        <nav
-            aria-label="Redes sociais da ARCANA SCAN"
-        >
+        <nav aria-label="Redes sociais da ARCANA SCAN">
+
+
+            <!-- INSTAGRAM OFICIAL -->
 
             <a
-                href="#"
-                aria-label="Instagram"
+                href="https://www.instagram.com/arcanascan/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram da ARCANA SCAN"
             >
 
                 <i
@@ -1534,9 +1161,13 @@
             </a>
 
 
+            <!-- TIKTOK OFICIAL -->
+
             <a
-                href="#"
-                aria-label="TikTok"
+                href="https://www.tiktok.com/@arcanascan"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="TikTok da ARCANA SCAN"
             >
 
                 <i
@@ -1550,6 +1181,8 @@
 
             </a>
 
+
+            <!-- TELEGRAM — AGUARDANDO LINK OFICIAL -->
 
             <a
                 href="#"
@@ -1577,14 +1210,9 @@
     </footer>
 
 
-
-    <!-- =====================================================
-         SCRIPT PRINCIPAL
-         Mantém menu lateral e botão de tema funcionando.
-    ====================================================== -->
+    <!-- SCRIPT PRINCIPAL DA ARCANA -->
 
     <script src="script.js"></script>
 
 </body>
-
 </html>

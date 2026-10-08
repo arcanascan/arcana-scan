@@ -3224,3 +3224,231 @@ main {
         font-size: 13px;
     }
 }
+
+/* ============================================================
+   ARCANA SCAN — TEMA CLARO / ESCURO
+   Adicionar AO FINAL de style.css, sem remover as regras atuais.
+   Compatível com script.js: data-theme="light" e .light-mode.
+   ============================================================ */
+
+/* Botão do tema: deve permanecer disponível também no celular. */
+@media (max-width: 620px) {
+    .header-actions #themeButton {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        padding: 0;
+        font-size: 14px;
+    }
+}
+
+/* O modo escuro original não é alterado. */
+html[data-theme="light"] {
+    --bg: #f6f0e6;
+    --text: #2c2034;
+    --muted: #65576c;
+    --purple: #76458e;
+    --purple-light: #77448d;
+    --gold: #86632f;
+    --gold-light: #9d743a;
+    --border: rgba(92, 60, 102, .24);
+    background: #f6f0e6;
+    color-scheme: light;
+}
+
+html[data-theme="light"] body {
+    --text: #2c2034;
+    --muted: #65576c;
+    --purple: #76458e;
+    --purple-light: #77448d;
+    --gold: #86632f;
+    --gold-light: #9d743a;
+    color: var(--text);
+    background-color: #f6f0e6 !important;
+    background-image:
+        linear-gradient(rgba(250, 245, 235, .79), rgba(250, 245, 235, .84)),
+        url("BIBLIOTECA-ARCANA.png") !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+}
+
+html[data-theme="light"] body::after {
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(87, 58, 88, .10));
+}
+
+/* O CSS da página de Revelações contém estilos próprios. */
+html[data-theme="light"] .site-header {
+    color: #302238;
+    border-bottom-color: rgba(111, 77, 110, .22);
+    background: rgba(250, 246, 238, .95);
+}
+html[data-theme="light"] .header-navigation a,
+html[data-theme="light"] .header-icon,
+html[data-theme="light"] .menu-button {
+    color: #493750;
+}
+html[data-theme="light"] .header-navigation a:hover,
+html[data-theme="light"] .header-navigation a[aria-current="page"] {
+    color: #74418b;
+}
+html[data-theme="light"] .header-search input {
+    color: #34253c;
+    border-color: rgba(112, 71, 130, .33);
+    background: rgba(255, 253, 248, .94);
+}
+html[data-theme="light"] .header-search input::placeholder,
+html[data-theme="light"] .header-search i {
+    color: #74667a;
+}
+html[data-theme="light"] .header-icon,
+html[data-theme="light"] .menu-button {
+    border-color: rgba(112, 71, 130, .26);
+    background: rgba(255, 253, 248, .90);
+}
+html[data-theme="light"] .header-icon:hover,
+html[data-theme="light"] .menu-button:hover {
+    color: #6c367f;
+    background: #f0e4f0;
+}
+html[data-theme="light"] .menu-button span {
+    background: linear-gradient(90deg, #946c3b, #6d3b83, #946c3b);
+}
+
+/* Menu e fundo do menu */
+html[data-theme="light"] .menu-overlay {
+    background: rgba(42, 28, 47, .40);
+}
+html[data-theme="light"] .side-menu {
+    color: #34253c;
+    background: radial-gradient(circle at 80% 10%, rgba(156, 105, 172, .12), transparent 40%), #faf5ec;
+}
+html[data-theme="light"] .side-navigation > a,
+html[data-theme="light"] .lists-menu summary,
+html[data-theme="light"] .lists-content a,
+html[data-theme="light"] .menu-close {
+    color: #493750;
+}
+html[data-theme="light"] .side-navigation > a:hover,
+html[data-theme="light"] .lists-menu summary:hover,
+html[data-theme="light"] .lists-content a:hover,
+html[data-theme="light"] .menu-close:hover {
+    color: #7a3b91;
+}
+
+/* Títulos, descrições e nomes de obras */
+html[data-theme="light"] .section-heading h1,
+html[data-theme="light"] .section-heading h2,
+html[data-theme="light"] .continue-heading h2,
+html[data-theme="light"] .continue-card h3,
+html[data-theme="light"] .update-card h4,
+html[data-theme="light"] .hosting-card h3,
+html[data-theme="light"] .work-card h3,
+html[data-theme="light"] .order-card strong,
+html[data-theme="light"] .revelations-heading h1,
+html[data-theme="light"] .revelations-empty h2,
+html[data-theme="light"] .revelations-card h3 {
+    color: #2c2034;
+}
+html[data-theme="light"] .section-heading p,
+html[data-theme="light"] .continue-heading > p,
+html[data-theme="light"] .continue-card p,
+html[data-theme="light"] .update-card > span,
+html[data-theme="light"] .order-card small,
+html[data-theme="light"] .revelations-heading p,
+html[data-theme="light"] .revelations-empty p,
+html[data-theme="light"] .revelations-synopsis,
+html[data-theme="light"] .revelations-note {
+    color: #625469;
+}
+html[data-theme="light"] .eyebrow,
+html[data-theme="light"] .hosting-card small,
+html[data-theme="light"] .revelations-heading .eyebrow,
+html[data-theme="light"] .revelations-gallery-title,
+html[data-theme="light"] .revelations-status {
+    color: #77418d;
+}
+
+/* Cards e botões: superfícies claras, mantendo as dimensões. */
+html[data-theme="light"] .order-card {
+    color: #2c2034;
+    border-color: rgba(119, 76, 134, .23);
+    background: linear-gradient(145deg, rgba(255, 253, 248, .93), rgba(237, 226, 233, .93));
+    box-shadow: 0 12px 30px rgba(72, 48, 76, .10);
+}
+html[data-theme="light"] .ancient-button {
+    color: #503653;
+    border-color: rgba(134, 99, 47, .46);
+    background: linear-gradient(180deg, rgba(255, 251, 242, .96), rgba(232, 216, 224, .96));
+    box-shadow: 0 12px 26px rgba(80, 50, 76, .12);
+}
+html[data-theme="light"] .text-link {
+    color: #583a62;
+}
+html[data-theme="light"] .pagination button {
+    color: #493750;
+    background: rgba(255, 252, 247, .94);
+}
+html[data-theme="light"] .pagination button.active,
+html[data-theme="light"] .pagination button:hover {
+    color: #fff;
+    background: #75448c;
+}
+html[data-theme="light"] .progress {
+    background: rgba(78, 53, 83, .18);
+}
+
+/* Capas fictícias da Home continuam escuras para preservar sua arte. */
+html[data-theme="light"] .cover-art span {
+    color: #fff;
+}
+
+/* Legendas dos personagens sobre as imagens permanecem legíveis. */
+html[data-theme="light"] .guardian figcaption,
+html[data-theme="light"] .guardian figcaption strong,
+html[data-theme="light"] .guardian figcaption small {
+    color: #fff4dc;
+    text-shadow: 0 2px 7px #160d1b, 0 0 15px #160d1b;
+}
+
+/* Próximas Revelações — o painel vazio e as legendas especiais. */
+html[data-theme="light"] .revelations-empty {
+    border-top-color: rgba(134, 99, 47, .33);
+    border-bottom-color: rgba(134, 99, 47, .33);
+    background: radial-gradient(ellipse at center, rgba(243, 230, 243, .84), rgba(250, 245, 235, .12) 80%);
+}
+html[data-theme="light"] .revelations-empty-icon {
+    color: #805d34;
+    border-color: rgba(134, 99, 47, .42);
+}
+html[data-theme="light"] .revelations-guardian figcaption strong,
+html[data-theme="light"] .revelations-guardian figcaption small {
+    color: #4a3353;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, .95);
+}
+
+/* Rodapé */
+html[data-theme="light"] .site-footer {
+    color: #392a41;
+    border-top-color: rgba(111, 77, 110, .20);
+    background: rgba(247, 239, 230, .94);
+}
+html[data-theme="light"] .site-footer > p,
+html[data-theme="light"] .site-footer nav a,
+html[data-theme="light"] .site-footer > small {
+    color: #625469;
+}
+html[data-theme="light"] .site-footer nav a:hover {
+    color: #77418d;
+}
+
+/* Contraste de foco, para navegação pelo teclado. */
+html[data-theme="light"] :focus-visible {
+    outline: 2px solid #75448c;
+    outline-offset: 3px;
+}
+

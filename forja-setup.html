@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Primeira Chave | Forja Arcana</title>
+
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background:
+                radial-gradient(circle at top, #34204f, transparent 55%),
+                #100b19;
+            color: #f5edff;
+        }
+
+        main {
+            width: 100%;
+            max-width: 460px;
+            padding: 36px;
+            background: #21162f;
+            border: 1px solid #6c4c8e;
+            border-radius: 20px;
+            box-shadow: 0 20px 70px #0007;
+        }
+
+        .symbol {
+            text-align: center;
+            font-size: 42px;
+        }
+
+        h1 {
+            margin: 12px 0 8px;
+            text-align: center;
+            color: #e5c6ff;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #cbb8dc;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        label {
+            display: block;
+            margin: 16px 0 7px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #69537d;
+            border-radius: 9px;
+            background: #130e1e;
+            color: white;
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: 2px solid #bb88f0;
+            outline-offset: 1px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 14px;
+            border: 0;
+            border-radius: 10px;
+            background: #a775e2;
+            color: #160d22;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .notice {
+            margin-top: 18px;
+            padding: 13px;
+            border: 1px solid #74558d;
+            border-radius: 9px;
+            color: #e1cbed;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <div class="symbol">👑🔮</div>
+
+        <h1>A Primeira Chave</h1>
+
+        <p class="subtitle">
+            Inicialização segura da proprietária
+            da FORJA ARCANA.
+        </p>
+
+        <form id="setup-form">
+            <label for="name">Nome</label>
+            <input
+                id="name"
+                name="name"
+                autocomplete="name"
+                required
+                maxlength="100"
+            >
+
+            <label for="email">E-mail</label>
+            <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+            >
+
+            <label for="username">Nome de usuário</label>
+            <input
+                id="username"
+                name="username"
+                autocomplete="username"
+                minlength="3"
+                maxlength="32"
+                required
+            >
+
+            <label for="password">Senha</label>
+            <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                minlength="12"
+                required
+            >
+
+            <label for="setup-secret">
+                Chave temporária de inicialização
+            </label>
+            <input
+                id="setup-secret"
+                name="setup-secret"
+                type="password"
+                autocomplete="off"
+                required
+            >
+
+            <button type="button" disabled>
+                Cadastro ainda não habilitado
+            </button>
+        </form>
+
+        <div class="notice">
+            🔐 Esta é uma interface de preparação.
+            O cadastro será habilitado somente depois
+            que a autenticação segura estiver
+            implementada no servidor.
+        </div>
+    </main>
+</body>
+</html>

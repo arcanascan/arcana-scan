@@ -4,12 +4,10 @@
 
 <head>
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
-
     <meta
         name="description"
         content="Próximas Revelações da ARCANA SCAN. Descubra as histórias que estão a caminho da nossa biblioteca."
@@ -17,11 +15,27 @@
 
     <title>Próximas Revelações | ARCANA SCAN</title>
 
-    <link
-        rel="icon"
-        type="image/png"
-        href="LOGO.png"
-    >
+    <link rel="icon" type="image/png" href="LOGO.png">
+
+    <!-- Recupera o tema antes de desenhar a página -->
+    <script>
+        (function () {
+            let theme = "dark";
+
+            try {
+                theme = localStorage.getItem("arcana-theme") === "light"
+                    ? "light"
+                    : "dark";
+            } catch (error) {
+                theme = "dark";
+            }
+
+            document.documentElement.setAttribute(
+                "data-theme",
+                theme
+            );
+        })();
+    </script>
 
     <link
         rel="stylesheet"
@@ -30,15 +44,16 @@
 
     <link rel="stylesheet" href="style.css">
 
-
-    <!--
-        ESTILOS EXCLUSIVOS DE PRÓXIMAS REVELAÇÕES
-
-        A identidade geral vem do style.css da HOME.
-        Estes estilos organizam apenas esta nova página.
-    -->
-
     <style>
+        /* =====================================================
+           ARCANA SCAN — PRÓXIMAS REVELAÇÕES
+
+           Nyx à esquerda.
+           Obras no centro.
+           Elara à direita.
+
+           A composição permanece no celular.
+           ===================================================== */
 
         .revelations-page .revelations-main {
             width: 100%;
@@ -58,27 +73,22 @@
                 clamp(90px, 10vw, 150px);
 
             box-sizing: border-box;
-
             background: transparent !important;
         }
 
-
-        /* =========================================
+        /* =====================================================
            TÍTULO DA PÁGINA
-        ========================================== */
+           ===================================================== */
 
         .revelations-page .revelations-heading {
             width: 100%;
             max-width: 820px;
-
             margin: 0 auto 65px;
-
             text-align: center;
         }
 
         .revelations-page .revelations-heading .eyebrow {
             display: block;
-
             margin-bottom: 15px;
 
             color: #c8a66f;
@@ -101,7 +111,6 @@
 
         .revelations-page .revelations-heading p {
             max-width: 630px;
-
             margin: 20px auto 0;
 
             color: #c9bdd2;
@@ -110,12 +119,9 @@
             line-height: 1.8;
         }
 
-
-        /* =========================================
+        /* =====================================================
            NYX | OBRAS | ELARA
-
-           A COMPOSIÇÃO É MANTIDA NO CELULAR.
-        ========================================== */
+           ===================================================== */
 
         .revelations-page .revelations-stage {
             display: grid !important;
@@ -126,26 +132,21 @@
                 minmax(100px, 19%);
 
             align-items: end;
-
             gap: clamp(10px, 2vw, 30px);
 
             width: 100%;
-
             margin: 0 auto;
 
             position: relative;
-
             background: transparent !important;
         }
 
-
-        /* =========================================
+        /* =====================================================
            GUARDIÃS
-        ========================================== */
+           ===================================================== */
 
         .revelations-page .revelations-guardian {
             position: relative !important;
-
             inset: auto !important;
 
             display: flex !important;
@@ -161,7 +162,6 @@
             padding: 0 !important;
 
             transform: none !important;
-
             z-index: 1;
         }
 
@@ -179,12 +179,14 @@
             margin: 0 auto;
 
             filter:
-                drop-shadow(0 0 20px rgba(132, 67, 184, 0.18));
+                drop-shadow(
+                    0 0 20px
+                    rgba(132, 67, 184, 0.18)
+                );
         }
 
         .revelations-page .revelations-guardian figcaption {
             position: relative !important;
-
             inset: auto !important;
 
             display: flex;
@@ -192,34 +194,28 @@
             align-items: center;
 
             gap: 5px;
-
             width: 100%;
-
             margin-top: 10px;
 
             text-align: center;
-
             transform: none !important;
         }
 
         .revelations-page .revelations-guardian figcaption small {
             color: #b99b71;
-
             font-size: 0.63rem;
             letter-spacing: 0.14em;
         }
 
         .revelations-page .revelations-guardian figcaption strong {
             color: #f1e6f7;
-
             font-size: 1.05rem;
             letter-spacing: 0.15em;
         }
 
-
-        /* =========================================
-           ÁREA DAS FUTURAS OBRAS
-        ========================================== */
+        /* =====================================================
+           GALERIA CENTRAL
+           ===================================================== */
 
         .revelations-page .revelations-gallery {
             display: flex;
@@ -247,13 +243,9 @@
             text-transform: uppercase;
         }
 
-
-        /* =========================================
-           ESTADO INICIAL
-
-           EXIBIDO ENQUANTO NÃO HOUVER OBRAS
-           CADASTRADAS PARA ESTA PÁGINA.
-        ========================================== */
+        /* =====================================================
+           ESTADO VAZIO
+           ===================================================== */
 
         .revelations-page .revelations-empty {
             display: flex;
@@ -262,7 +254,6 @@
             justify-content: center;
 
             min-height: 290px;
-
             padding: 35px 20px;
 
             border-top:
@@ -279,7 +270,6 @@
                 );
 
             text-align: center;
-
             box-sizing: border-box;
         }
 
@@ -290,7 +280,6 @@
 
             width: 78px;
             height: 78px;
-
             margin-bottom: 23px;
 
             border:
@@ -299,7 +288,6 @@
             border-radius: 50%;
 
             color: #d2b17b;
-
             font-size: 2rem;
 
             box-shadow:
@@ -318,7 +306,6 @@
 
         .revelations-page .revelations-empty p {
             max-width: 380px;
-
             margin: 0;
 
             color: #bfb0c9;
@@ -327,18 +314,15 @@
             line-height: 1.8;
         }
 
-
-        /* =========================================
-           CATÁLOGO DAS PRÓXIMAS OBRAS
-        ========================================== */
+        /* =====================================================
+           CATÁLOGO DE PRÓXIMAS OBRAS
+           ===================================================== */
 
         .revelations-page .revelations-list {
             display: flex;
-
             gap: 20px;
 
             width: 100%;
-
             padding: 12px 2px 25px;
 
             overflow-x: auto;
@@ -358,9 +342,7 @@
 
         .revelations-page .revelations-card {
             flex: 0 0 clamp(150px, 17vw, 205px);
-
             min-width: 0;
-
             scroll-snap-align: start;
         }
 
@@ -385,10 +367,8 @@
 
         .revelations-page .revelations-cover img {
             display: block;
-
             width: 100%;
             height: 100%;
-
             object-fit: cover;
         }
 
@@ -404,7 +384,6 @@
 
         .revelations-page .revelations-status {
             display: inline-block;
-
             margin-bottom: 9px;
 
             color: #d5b784;
@@ -422,14 +401,12 @@
             line-height: 1.65;
         }
 
-
-        /* =========================================
+        /* =====================================================
            NOTA INFORMATIVA
-        ========================================== */
+           ===================================================== */
 
         .revelations-page .revelations-note {
             max-width: 650px;
-
             margin: 65px auto 0;
 
             color: #a99bb5;
@@ -442,61 +419,152 @@
 
         .revelations-page .revelations-note i {
             margin-right: 7px;
-
             color: #c4a474;
         }
 
-
-        /* =========================================
+        /* =====================================================
            MENU LATERAL
-        ========================================== */
+           ===================================================== */
 
         .revelations-page .side-menu.is-open {
             transform: translateX(0) !important;
-
             opacity: 1 !important;
             visibility: visible !important;
             pointer-events: auto !important;
-
-            z-index: 1002;
+            z-index: 1200;
         }
 
         .revelations-page .menu-overlay.is-open {
             display: block !important;
-
             opacity: 1 !important;
             visibility: visible !important;
             pointer-events: auto !important;
-
-            z-index: 1001;
+            z-index: 1100;
         }
 
-        .revelations-page .header-navigation a[aria-current="page"] {
+        .revelations-page
+        .header-navigation a[aria-current="page"] {
             color: #d8b982;
         }
 
+        /* =====================================================
+           NOVO — MODO CLARO DAS PRÓXIMAS REVELAÇÕES
 
-        /* =========================================
+           Usa o fundo iluminado do style.css.
+           Mantém textos em marfim, com sombras para leitura.
+           Não altera o modo escuro.
+           ===================================================== */
+
+        html[data-theme="light"]
+        .revelations-page .revelations-heading h1,
+
+        html[data-theme="light"]
+        .revelations-page .revelations-empty h2,
+
+        html[data-theme="light"]
+        .revelations-page .revelations-card h3,
+
+        html[data-theme="light"]
+        .revelations-page .revelations-guardian figcaption strong {
+            color: #fff8ee !important;
+
+            text-shadow:
+                0 2px 5px rgba(20, 9, 27, 0.95),
+                0 4px 14px rgba(20, 9, 27, 0.75),
+                0 0 28px rgba(20, 9, 27, 0.35);
+        }
+
+        html[data-theme="light"]
+        .revelations-page .revelations-heading p,
+
+        html[data-theme="light"]
+        .revelations-page .revelations-empty p,
+
+        html[data-theme="light"]
+        .revelations-page .revelations-synopsis,
+
+        html[data-theme="light"]
+        .revelations-page .revelations-note {
+            color: #fff6eb !important;
+
+            text-shadow:
+                0 1px 4px rgba(15, 7, 20, 0.95),
+                0 2px 10px rgba(15, 7, 20, 0.75);
+        }
+
+        html[data-theme="light"]
+        .revelations-page .revelations-heading .eyebrow,
+
+        html[data-theme="light"]
+        .revelations-page .revelations-gallery-title,
+
+        html[data-theme="light"]
+        .revelations-page .revelations-status,
+
+        html[data-theme="light"]
+        .revelations-page .revelations-guardian figcaption small {
+            color: #ffe0a6 !important;
+
+            text-shadow:
+                0 1px 4px rgba(20, 9, 27, 0.95),
+                0 0 12px rgba(20, 9, 27, 0.65);
+        }
+
+        html[data-theme="light"]
+        .revelations-page .revelations-empty {
+            background:
+                radial-gradient(
+                    ellipse at center,
+                    rgba(35, 14, 50, 0.22) 0%,
+                    rgba(35, 14, 50, 0.06) 45%,
+                    transparent 80%
+                );
+
+            border-top-color:
+                rgba(125, 74, 137, 0.35);
+
+            border-bottom-color:
+                rgba(125, 74, 137, 0.35);
+        }
+
+        html[data-theme="light"]
+        .revelations-page .revelations-empty-icon {
+            color: #ffe0a6;
+
+            border-color:
+                rgba(255, 224, 166, 0.55);
+
+            background:
+                rgba(35, 14, 50, 0.16);
+        }
+
+        html[data-theme="light"]
+        .revelations-page .revelations-note i {
+            color: #ffe0a6;
+        }
+
+        html[data-theme="light"]
+        .revelations-page
+        .header-navigation a[aria-current="page"] {
+            color: #714081 !important;
+        }
+
+        /* =====================================================
            CELULAR
 
            NYX | OBRAS | ELARA
-
-           NÃO EMPILHAR PERSONAGENS.
-        ========================================== */
+           Sem empilhar personagens.
+           ===================================================== */
 
         @media (max-width: 700px) {
 
             .revelations-page .revelations-section {
                 min-height: 550px;
-
-                padding:
-                    55px 10px
-                    90px;
+                padding: 55px 10px 90px;
             }
 
             .revelations-page .revelations-heading {
                 margin-bottom: 38px;
-
                 padding: 0 10px;
             }
 
@@ -518,7 +586,6 @@
                     minmax(52px, 19%);
 
                 gap: 5px;
-
                 align-items: center;
             }
 
@@ -532,16 +599,17 @@
 
             .revelations-page .revelations-guardian figcaption {
                 gap: 3px;
-
                 margin-top: 7px;
             }
 
-            .revelations-page .revelations-guardian figcaption small {
+            .revelations-page
+            .revelations-guardian figcaption small {
                 font-size: 0.47rem;
                 letter-spacing: 0.02em;
             }
 
-            .revelations-page .revelations-guardian figcaption strong {
+            .revelations-page
+            .revelations-guardian figcaption strong {
                 font-size: 0.68rem;
             }
 
@@ -551,29 +619,24 @@
 
             .revelations-page .revelations-gallery-title {
                 margin-bottom: 12px;
-
                 font-size: 0.6rem;
                 letter-spacing: 0.06em;
             }
 
             .revelations-page .revelations-empty {
                 min-height: 210px;
-
                 padding: 15px 5px;
             }
 
             .revelations-page .revelations-empty-icon {
                 width: 47px;
                 height: 47px;
-
                 margin-bottom: 13px;
-
                 font-size: 1.3rem;
             }
 
             .revelations-page .revelations-empty h2 {
                 margin-bottom: 9px;
-
                 font-size: 0.86rem;
             }
 
@@ -584,7 +647,6 @@
 
             .revelations-page .revelations-list {
                 gap: 12px;
-
                 padding-bottom: 16px;
             }
 
@@ -602,24 +664,40 @@
 
             .revelations-page .revelations-note {
                 margin-top: 42px;
-
                 padding: 0 12px;
-
                 font-size: 0.7rem;
             }
+        }
 
+        /* =====================================================
+           BOTÃO DE TEMA VISÍVEL NO CELULAR
+           ===================================================== */
+
+        @media (max-width: 620px) {
+
+            .revelations-page #themeButton {
+                display: grid !important;
+                place-items: center;
+
+                width: 38px;
+                height: 38px;
+                padding: 0;
+
+                flex: 0 0 38px;
+            }
+
+            .revelations-page
+            .header-actions .header-icon:not(#themeButton) {
+                display: none !important;
+            }
         }
 
     </style>
-
 </head>
-
 
 <body class="revelations-page">
 
-    <!-- =========================================
-         FUNDO CONTÍNUO DA ARCANA
-    ========================================== -->
+    <!-- FUNDO CONTÍNUO DA ARCANA -->
 
     <div
         class="site-library-background"
@@ -631,35 +709,24 @@
         aria-hidden="true"
     ></div>
 
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
 
-    <!-- =========================================
-         HEADER — MESMO PADRÃO DA HOME
-    ========================================== -->
-
-    <header
-        class="site-header"
-        id="siteHeader"
-    >
+    <header class="site-header" id="siteHeader">
 
         <a
             href="index.html#grande-acervo"
             class="header-logo"
             aria-label="ARCANA SCAN — Início"
         >
-
-            <img
-                src="LOGO.png"
-                alt="ARCANA SCAN"
-            >
-
+            <img src="LOGO.png" alt="ARCANA SCAN">
         </a>
-
 
         <nav
             class="header-navigation"
             aria-label="Navegação principal"
         >
-
             <a href="index.html#grande-acervo">
                 Acervo
             </a>
@@ -675,27 +742,18 @@
                 Próximas Revelações
             </a>
 
-            <a
-                href="#"
-                data-page="generos"
-            >
+            <a href="#" data-page="generos">
                 Gêneros
             </a>
 
-            <a
-                href="#"
-                data-page="favoritos"
-            >
+            <a href="#" data-page="favoritos">
                 Favoritos
             </a>
-
         </nav>
 
+        <!-- BUSCA -->
 
-        <form
-            class="header-search"
-            role="search"
-        >
+        <form class="header-search" role="search">
 
             <i
                 class="fa-solid fa-magnifying-glass"
@@ -710,6 +768,7 @@
 
         </form>
 
+        <!-- AÇÕES -->
 
         <div class="header-actions">
 
@@ -718,23 +777,23 @@
                 type="button"
                 aria-label="Notificações"
             >
-
                 <i class="fa-regular fa-bell"></i>
-
             </button>
 
+            <!-- TEMA CLARO / ESCURO -->
 
             <button
                 class="header-icon"
                 id="themeButton"
                 type="button"
-                aria-label="Alternar tema"
+                aria-label="Ativar modo claro"
+                aria-pressed="false"
+                title="Ativar modo claro"
             >
-
                 <i class="fa-regular fa-moon"></i>
-
             </button>
 
+            <!-- MENU -->
 
             <button
                 class="menu-button"
@@ -743,28 +802,23 @@
                 aria-label="Abrir menu"
                 aria-expanded="false"
             >
-
                 <span></span>
                 <span></span>
                 <span></span>
-
             </button>
 
         </div>
 
     </header>
 
-
-
-    <!-- =========================================
+    <!-- =====================================================
          MENU LATERAL
-    ========================================== -->
+         ===================================================== -->
 
     <div
         class="menu-overlay"
         id="menuOverlay"
     ></div>
-
 
     <aside
         class="side-menu"
@@ -790,7 +844,6 @@
 
         </div>
 
-
         <nav
             class="side-navigation"
             aria-label="Menu da ARCANA"
@@ -804,20 +857,13 @@
                 Próximas Revelações
             </a>
 
-            <a
-                href="#"
-                data-page="generos"
-            >
+            <a href="#" data-page="generos">
                 Gêneros
             </a>
 
-            <a
-                href="#"
-                data-page="favoritos"
-            >
+            <a href="#" data-page="favoritos">
                 Favoritos
             </a>
-
 
             <!-- MINHAS LISTAS -->
 
@@ -836,13 +882,10 @@
                         <span
                             class="list-emoji"
                             aria-hidden="true"
-                        >
-                            💕
-                        </span>
+                        >💕</span>
 
                         <span>Amorzinho</span>
                     </a>
-
 
                     <a
                         href="#"
@@ -851,13 +894,10 @@
                         <span
                             class="list-emoji"
                             aria-hidden="true"
-                        >
-                            🔥
-                        </span>
+                        >🔥</span>
 
                         <span>Casei com a Putaria</span>
                     </a>
-
 
                     <a
                         href="#"
@@ -866,13 +906,10 @@
                         <span
                             class="list-emoji"
                             aria-hidden="true"
-                        >
-                            🥺
-                        </span>
+                        >🥺</span>
 
                         <span>Vou sofrer</span>
                     </a>
-
 
                     <a
                         href="#"
@@ -881,13 +918,10 @@
                         <span
                             class="list-emoji"
                             aria-hidden="true"
-                        >
-                            🌙
-                        </span>
+                        >🌙</span>
 
                         <span>Ler de madrugada</span>
                     </a>
-
 
                     <a
                         href="#"
@@ -896,9 +930,7 @@
                         <span
                             class="list-emoji"
                             aria-hidden="true"
-                        >
-                            👑
-                        </span>
+                        >👑</span>
 
                         <span>Meus Xodós</span>
                     </a>
@@ -906,7 +938,6 @@
                 </div>
 
             </details>
-
 
             <a href="index.html#hospedagens">
                 Hospedagens
@@ -916,10 +947,7 @@
                 Recrutamento
             </a>
 
-            <a
-                href="#"
-                data-page="sobre"
-            >
+            <a href="#" data-page="sobre">
                 Sobre
             </a>
 
@@ -927,11 +955,9 @@
 
     </aside>
 
-
-
-    <!-- =========================================
+    <!-- =====================================================
          CONTEÚDO PRINCIPAL
-    ========================================== -->
+         ===================================================== -->
 
     <main class="site-main revelations-main">
 
@@ -942,7 +968,9 @@
 
             <!-- TÍTULO -->
 
-            <header class="section-heading revelations-heading">
+            <header
+                class="section-heading revelations-heading"
+            >
 
                 <span class="eyebrow">
                     O ORÁCULO DA ARCANA
@@ -961,16 +989,13 @@
 
             </header>
 
-
-
-            <!-- =================================
+            <!-- =================================================
                  NYX | OBRAS | ELARA
-            ================================== -->
+                 ================================================= -->
 
             <div class="revelations-stage">
 
-
-                <!-- NYX — LADO ESQUERDO -->
+                <!-- NYX — ESQUERDA -->
 
                 <figure
                     class="guardian guardian-nyx revelations-guardian"
@@ -995,9 +1020,7 @@
 
                 </figure>
 
-
-
-                <!-- OBRAS FUTURAS — CENTRO -->
+                <!-- OBRAS — CENTRO -->
 
                 <div
                     class="revelations-gallery"
@@ -1008,8 +1031,7 @@
                         Histórias que estão por vir
                     </p>
 
-
-                    <!-- APARECE QUANDO NÃO HÁ OBRAS -->
+                    <!-- ENQUANTO NÃO HOUVER OBRAS -->
 
                     <div
                         class="revelations-empty"
@@ -1020,18 +1042,14 @@
                             class="revelations-empty-icon"
                             aria-hidden="true"
                         >
-
                             <i
                                 class="fa-solid fa-book-open"
                             ></i>
-
                         </div>
-
 
                         <h2>
                             Os segredos ainda estão selados
                         </h2>
-
 
                         <p>
                             Novas histórias estão sendo
@@ -1042,8 +1060,7 @@
 
                     </div>
 
-
-                    <!-- RECEBE AS CAPAS DAS OBRAS -->
+                    <!-- FUTURO CATÁLOGO -->
 
                     <div
                         class="revelations-list"
@@ -1054,9 +1071,7 @@
 
                 </div>
 
-
-
-                <!-- ELARA — LADO DIREITO -->
+                <!-- ELARA — DIREITA -->
 
                 <figure
                     class="guardian guardian-elara revelations-guardian"
@@ -1084,9 +1099,7 @@
 
             </div>
 
-
-
-            <!-- NOTA -->
+            <!-- NOTA INFORMATIVA -->
 
             <p class="revelations-note">
 
@@ -1106,11 +1119,9 @@
 
     </main>
 
-
-
-    <!-- =========================================
-         FOOTER — MESMO PADRÃO DA HOME
-    ========================================== -->
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
 
     <footer class="site-footer">
 
@@ -1120,67 +1131,38 @@
             loading="lazy"
         >
 
-
         <p>
             Uma biblioteca para aqueles
             que vivem entre histórias.
         </p>
 
-
         <nav aria-label="Redes sociais da ARCANA SCAN">
 
-            <a
-                href="#"
-                aria-label="Instagram"
-            >
-
+            <a href="#" aria-label="Instagram">
                 <i
                     class="fa-brands fa-instagram"
                     aria-hidden="true"
                 ></i>
-
-                <span>
-                    Instagram
-                </span>
-
+                <span>Instagram</span>
             </a>
 
-
-            <a
-                href="#"
-                aria-label="TikTok"
-            >
-
+            <a href="#" aria-label="TikTok">
                 <i
                     class="fa-brands fa-tiktok"
                     aria-hidden="true"
                 ></i>
-
-                <span>
-                    TikTok
-                </span>
-
+                <span>TikTok</span>
             </a>
 
-
-            <a
-                href="#"
-                aria-label="Telegram"
-            >
-
+            <a href="#" aria-label="Telegram">
                 <i
                     class="fa-brands fa-telegram"
                     aria-hidden="true"
                 ></i>
-
-                <span>
-                    Telegram
-                </span>
-
+                <span>Telegram</span>
             </a>
 
         </nav>
-
 
         <small>
             © ARCANA SCAN
@@ -1188,19 +1170,150 @@
 
     </footer>
 
-
-
-    <!-- =========================================
+    <!-- =====================================================
          FUNCIONALIDADES DA PÁGINA
-    ========================================== -->
+         ===================================================== -->
 
     <script>
 
         document.addEventListener("DOMContentLoaded", () => {
 
-            /* =====================================
+            /* =================================================
+               TEMA CLARO / ESCURO
+
+               Mesma preferência utilizada na Home.
+               ================================================= */
+
+            const themeButton =
+                document.getElementById("themeButton");
+
+            const THEME_STORAGE_KEY = "arcana-theme";
+
+            function readSavedTheme() {
+                try {
+                    return localStorage.getItem(
+                        THEME_STORAGE_KEY
+                    ) === "light"
+                        ? "light"
+                        : "dark";
+                } catch (error) {
+                    return "dark";
+                }
+            }
+
+            function saveTheme(theme) {
+                try {
+                    localStorage.setItem(
+                        THEME_STORAGE_KEY,
+                        theme
+                    );
+                } catch (error) {
+                    // A alternância continua funcionando
+                    // mesmo sem armazenamento disponível.
+                }
+            }
+
+            function applyTheme(theme) {
+
+                const isLight = theme === "light";
+
+                document.documentElement.setAttribute(
+                    "data-theme",
+                    isLight ? "light" : "dark"
+                );
+
+                document.body.classList.toggle(
+                    "soft-light-mode",
+                    isLight
+                );
+
+                document.body.classList.toggle(
+                    "light-mode",
+                    isLight
+                );
+
+                if (themeButton) {
+
+                    const icon =
+                        themeButton.querySelector("i");
+
+                    if (icon) {
+                        icon.className = isLight
+                            ? "fa-solid fa-sun"
+                            : "fa-regular fa-moon";
+                    }
+
+                    const label = isLight
+                        ? "Ativar modo escuro"
+                        : "Ativar modo claro";
+
+                    themeButton.setAttribute(
+                        "aria-label",
+                        label
+                    );
+
+                    themeButton.setAttribute(
+                        "title",
+                        label
+                    );
+
+                    themeButton.setAttribute(
+                        "aria-pressed",
+                        String(isLight)
+                    );
+                }
+            }
+
+            // Restaura a escolha do leitor.
+
+            applyTheme(readSavedTheme());
+
+            // Alterna ao clicar no botão.
+
+            if (themeButton) {
+
+                themeButton.addEventListener(
+                    "click",
+                    () => {
+
+                        const currentTheme =
+                            document.documentElement.getAttribute(
+                                "data-theme"
+                            );
+
+                        const nextTheme =
+                            currentTheme === "light"
+                                ? "dark"
+                                : "light";
+
+                        applyTheme(nextTheme);
+                        saveTheme(nextTheme);
+
+                    }
+                );
+            }
+
+            // Sincroniza a escolha entre abas.
+
+            window.addEventListener(
+                "storage",
+                (event) => {
+
+                    if (event.key === THEME_STORAGE_KEY) {
+
+                        applyTheme(
+                            event.newValue === "light"
+                                ? "light"
+                                : "dark"
+                        );
+
+                    }
+                }
+            );
+
+            /* =================================================
                MENU LATERAL
-            ====================================== */
+               ================================================= */
 
             const menuButton =
                 document.getElementById("menuButton");
@@ -1213,7 +1326,6 @@
 
             const menuOverlay =
                 document.getElementById("menuOverlay");
-
 
             function setMenuOpen(open) {
 
@@ -1241,9 +1353,7 @@
                     "menu-open",
                     open
                 );
-
             }
-
 
             menuButton.addEventListener(
                 "click",
@@ -1271,21 +1381,27 @@
                 }
             );
 
+            sideMenu.querySelectorAll("a").forEach(
+                (link) => {
 
+                    link.addEventListener(
+                        "click",
+                        () => setMenuOpen(false)
+                    );
 
-            /* =====================================
+                }
+            );
+
+            /* =================================================
                PRÓXIMAS OBRAS
 
-               NÃO CADASTRAMOS OBRAS FICTÍCIAS.
-
-               QUANDO TIVERMOS OS TÍTULOS REAIS,
-               VAMOS ADICIONÁ-LOS NESTA LISTA.
-            ====================================== */
+               Nenhuma obra fictícia cadastrada.
+               ================================================= */
 
             const proximasObras = [
 
                 /*
-                EXEMPLO DE COMO CADASTRAR:
+                EXEMPLO DE CADASTRO FUTURO:
 
                 {
                     titulo: "Nome da obra",
@@ -1293,11 +1409,9 @@
                     sinopse: "Sinopse da obra.",
                     status: "Em preparação"
                 }
-
                 */
 
             ];
-
 
             const revelationsList =
                 document.getElementById(
@@ -1309,13 +1423,11 @@
                     "revelationsEmpty"
                 );
 
-
             const statusPermitidos = [
                 "Em planejamento",
                 "Em preparação",
                 "Estreia anunciada"
             ];
-
 
             if (proximasObras.length > 0) {
 
@@ -1323,7 +1435,6 @@
                 revelationsEmpty.style.display = "none";
 
                 revelationsList.hidden = false;
-
 
                 proximasObras.forEach((obra) => {
 
@@ -1333,29 +1444,28 @@
                     card.className =
                         "revelations-card";
 
-
                     const cover =
                         document.createElement("div");
 
                     cover.className =
                         "revelations-cover";
 
-
                     const image =
                         document.createElement("img");
 
                     image.src = obra.capa;
-                    image.alt = `Capa de ${obra.titulo}`;
+
+                    image.alt =
+                        `Capa de ${obra.titulo}`;
+
                     image.loading = "lazy";
 
                     cover.appendChild(image);
-
 
                     const title =
                         document.createElement("h3");
 
                     title.textContent = obra.titulo;
-
 
                     const status =
                         document.createElement("span");
@@ -1370,7 +1480,6 @@
                             ? obra.status
                             : "Em preparação";
 
-
                     const synopsis =
                         document.createElement("p");
 
@@ -1379,7 +1488,6 @@
 
                     synopsis.textContent =
                         obra.sinopse || "";
-
 
                     card.appendChild(cover);
                     card.appendChild(title);
@@ -1392,14 +1500,11 @@
 
             }
 
+            /* =================================================
+               BUSCA
 
-
-            /* =====================================
-               EVITAR RECARREGAMENTO NA BUSCA
-
-               A BUSCA REAL SERÁ CONECTADA
-               QUANDO IMPLEMENTARMOS O CATÁLOGO.
-            ====================================== */
+               Será conectada ao catálogo futuramente.
+               ================================================= */
 
             const searchForm =
                 document.querySelector(

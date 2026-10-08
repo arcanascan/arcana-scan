@@ -5,10 +5,13 @@ const JSON_HEADERS = {
     "X-Content-Type-Options": "nosniff"
 };
 
-function json(data, status = 200) {
+function json(data, status = 200, extraHeaders = {}) {
     return new Response(JSON.stringify(data), {
         status,
-        headers: JSON_HEADERS
+        headers: {
+            ...JSON_HEADERS,
+            ...extraHeaders
+        }
     });
 }
 
@@ -36,11 +39,19 @@ function constantTimeEqual(a, b) {
     let difference = left.length ^ right.length;
 
     for (let i = 0; i < length; i++) {
-        difference |=
-            (left[i] || 0) ^ (right[i] || 0);
+        difference |= (left[i] || 0) ^ (right[i] || 0);
     }
 
     return difference === 0;
+}
+
+async function sha256Hex(value) {
+    const digest = await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(value)
+    );
+
+    return toHex(digest);
 }
 
 async function hashPassword(password) {
@@ -55,13 +66,15 @@ async function hashPassword(password) {
         ["deriveBits"]
     );
 
+    const saltBytes = Uint8Array.from(
+        salt.match(/.{2}/g),
+        hex => parseInt(hex, 16)
+    );
+
     const derived = await crypto.subtle.deriveBits(
         {
             name: "PBKDF2",
-            salt: Uint8Array.from(
-                salt.match(/.{2}/g),
-                hex => parseInt(hex, 16)
-            ),
+            salt: saltBytes,
             iterations,
             hash: "SHA-256"
         },
@@ -183,26 +196,15 @@ async function createOwner(request, env) {
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail) ||
         !/^[a-zA-Z0-9_]{3,32}$/.test(cleanUsername) ||
         password.length < 12 ||
-        password.length > 128
+        password.length > 128 ||
+        setupSecret.length > 256
     ) {
         return json(
             {
                 ok: false,
-                error: "Confira nome, e-mail, usuário e senha."
+                error: "Confira os dados informados."
             },
             400
-        );
-    }
-
-    if (
-        !constantTimeEqual(
-            setupSecret,
-            env.FORJA_SETUP_SECRET
-        )
-    ) {
-        return json(
-            { ok: false, error: "Não autorizado." },
-            403
         );
     }
 
@@ -221,6 +223,54 @@ async function createOwner(request, env) {
             );
         }
 
+        const ip = request.headers.get("CF-Connecting-IP");
+
+        if (!ip) {
+            return json(
+                { ok: false, error: "Origem indisponível." },
+                403
+            );
+        }
+
+        const ipHash = await sha256Hex(
+            env.FORJA_SETUP_SECRET + ":" + ip
+        );
+
+        const attempts = await env.DB.prepare(
+            `SELECT COUNT(*) AS total
+             FROM forja_setup_attempts
+             WHERE ip_hash = ?
+               AND success = 0
+               AND attempted_at >= datetime('now', '-30 minutes')`
+        ).bind(ipHash).first();
+
+        if ((attempts?.total || 0) >= 5) {
+            return json(
+                {
+                    ok: false,
+                    error: "Muitas tentativas. Aguarde 30 minutos."
+                },
+                429,
+                { "Retry-After": "1800" }
+            );
+        }
+
+        if (!constantTimeEqual(
+            setupSecret,
+            env.FORJA_SETUP_SECRET
+        )) {
+            await env.DB.prepare(
+                `INSERT INTO forja_setup_attempts
+                    (ip_hash, success)
+                 VALUES (?, 0)`
+            ).bind(ipHash).run();
+
+            return json(
+                { ok: false, error: "Não autorizado." },
+                403
+            );
+        }
+
         const id = crypto.randomUUID();
         const passwordHash = await hashPassword(password);
 
@@ -235,6 +285,12 @@ async function createOwner(request, env) {
             cleanUsername,
             passwordHash
         ).run();
+
+        await env.DB.prepare(
+            `INSERT INTO forja_setup_attempts
+                (ip_hash, success)
+             VALUES (?, 1)`
+        ).bind(ipHash).run();
 
         return json(
             {
@@ -271,37 +327,7 @@ export default {
             });
         }
 
-        if (
-            url.pathname === "/api/forja/db-check" &&
-            request.method === "GET"
-        ) {
-            try {
-                const result = await env.DB
-                    .prepare("SELECT 1 AS connected")
-                    .first();
-
-                if (result?.connected !== 1) {
-                    throw new Error("Database unavailable");
-                }
-
-                return json({
-                    ok: true,
-                    database: "connected"
-                });
-            } catch {
-                return json(
-                    {
-                        ok: false,
-                        error: "Database unavailable"
-                    },
-                    503
-                );
-            }
-        }
-
-        if (
-            url.pathname === "/api/forja/setup-owner"
-        ) {
+        if (url.pathname === "/api/forja/setup-owner") {
             return createOwner(request, env);
         }
 

@@ -3452,3 +3452,27 @@ html[data-theme="light"] :focus-visible {
     outline-offset: 3px;
 }
 
+
+/* ============================================================
+   ARCANA SCAN — MODO CLARO
+   VÉU MAIS TRANSPARENTE
+
+   Biblioteca mais visível, mantendo o clima mágico.
+   Não altera o modo escuro nem o layout.
+   ============================================================ */
+
+html[data-theme="light"] body {
+    background-image:
+        linear-gradient(
+            to bottom,
+            rgba(250, 245, 235, 0.46),
+            rgba(250, 245, 235, 0.52)
+        ),
+        url("BIBLIOTECA-ARCANA.png") !important;
+
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+}
+

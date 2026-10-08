@@ -169,10 +169,11 @@
                 required
             >
 
-            <button type="button" disabled>
-                Cadastro ainda não habilitado
-            </button>
-        </form>
+         
+<button id="submit-button" type="submit">
+    Criar minha conta de ADM principal
+</button>
+
 
         <div class="notice">
             🔐 Esta é uma interface de preparação.
@@ -181,5 +182,73 @@
             implementada no servidor.
         </div>
     </main>
+
+    <script>
+        const form = document.getElementById("setup-form");
+        const button = document.getElementById("submit-button");
+
+        const message = document.createElement("p");
+        message.setAttribute("role", "status");
+        message.setAttribute("aria-live", "polite");
+        message.style.lineHeight = "1.6";
+        message.style.marginTop = "16px";
+        form.appendChild(message);
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            button.disabled = true;
+            button.textContent = "Criando conta...";
+            message.textContent = "";
+
+            const payload = {
+                name: document.getElementById("name").value,
+                email: document.getElementById("email").value,
+                username: document.getElementById("username").value,
+                password: document.getElementById("password").value,
+                setupSecret: document.getElementById("setup-secret").value
+            };
+
+            try {
+                const response = await fetch(
+                    "/api/forja/setup-owner",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        credentials: "same-origin",
+                        cache: "no-store",
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!response.ok || !result.ok) {
+                    throw new Error(
+                        result.error || "Não foi possível criar a conta."
+                    );
+                }
+
+                message.style.color = "#b9f5cc";
+                message.textContent =
+                    "Conta principal criada com sucesso! " +
+                    "Aguarde a configuração do login.";
+
+                form.reset();
+                button.textContent = "Conta criada";
+            } catch (error) {
+                message.style.color = "#ffb8c5";
+                message.textContent =
+                    error.message || "Erro ao criar a conta.";
+
+                button.disabled = false;
+                button.textContent =
+                    "Criar minha conta de ADM principal";
+            }
+        });
+    </script>
 </body>
 </html>
+

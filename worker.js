@@ -319,6 +319,10 @@ export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
 
+        // ==========================================
+        // ARCANA SCAN — STATUS
+        // ==========================================
+
         if (url.pathname === "/api/health") {
             return json({
                 ok: true,
@@ -327,9 +331,39 @@ export default {
             });
         }
 
+        // ==========================================
+        // DIAGNÓSTICO TEMPORÁRIO DA FORJA
+        // REMOVER DEPOIS DO TESTE
+        // ==========================================
+
+        if (
+            url.pathname === "/api/forja/config-check" &&
+            request.method === "GET"
+        ) {
+            const hasDB = Boolean(env.DB);
+            const hasSetupSecret = Boolean(env.FORJA_SETUP_SECRET);
+
+            return json(
+                {
+                    ok: hasDB && hasSetupSecret,
+                    database: hasDB ? "configured" : "missing",
+                    setupSecret: hasSetupSecret ? "configured" : "missing"
+                },
+                hasDB && hasSetupSecret ? 200 : 503
+            );
+        }
+
+        // ==========================================
+        // FORJA ARCANA — CADASTRO INICIAL
+        // ==========================================
+
         if (url.pathname === "/api/forja/setup-owner") {
             return createOwner(request, env);
         }
+
+        // ==========================================
+        // FORJA ARCANA — ROTAS PROTEGIDAS
+        // ==========================================
 
         if (
             url.pathname === "/api/forja" ||
@@ -343,6 +377,10 @@ export default {
                 401
             );
         }
+
+        // ==========================================
+        // ROTAS DESCONHECIDAS
+        // ==========================================
 
         return json(
             {

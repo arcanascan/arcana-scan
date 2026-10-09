@@ -3,6 +3,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
@@ -378,6 +379,18 @@
             display: block;
         }
 
+        .message.success {
+            border-color: rgba(115, 223, 164, 0.4);
+            background: rgba(115, 223, 164, 0.08);
+            color: #b9f4d1;
+        }
+
+        .message.error {
+            border-color: rgba(255, 125, 145, 0.35);
+            background: rgba(255, 125, 145, 0.07);
+            color: #ffc5ce;
+        }
+
         .footer {
             margin-top: 28px;
 
@@ -411,7 +424,6 @@
             .emblem {
                 width: 70px;
                 height: 70px;
-
                 font-size: 32px;
             }
 
@@ -558,6 +570,10 @@
             "login-form"
         );
 
+        const usernameInput = document.getElementById(
+            "username"
+        );
+
         const passwordInput = document.getElementById(
             "password"
         );
@@ -566,13 +582,38 @@
             "toggle-password"
         );
 
+        const loginButton = document.getElementById(
+            "login-button"
+        );
+
         const message = document.getElementById(
             "login-message"
         );
 
-        function showMessage(text) {
+        let submitting = false;
+
+        function showMessage(text, type = "") {
             message.textContent = text;
-            message.classList.add("visible");
+
+            message.className = "message visible";
+
+            if (type === "success" || type === "error") {
+                message.classList.add(type);
+            }
+        }
+
+        function clearMessage() {
+            message.textContent = "";
+            message.className = "message";
+        }
+
+        function setLoading(loading) {
+            submitting = loading;
+            loginButton.disabled = loading;
+
+            loginButton.textContent = loading
+                ? "Verificando acesso..."
+                : "Entrar na Forja ✦";
         }
 
         togglePassword.addEventListener(
@@ -603,18 +644,132 @@
             }
         );
 
+        async function checkExistingSession() {
+            try {
+                const response = await fetch(
+                    "/api/forja/me",
+                    {
+                        method: "GET",
+                        credentials: "same-origin",
+                        cache: "no-store"
+                    }
+                );
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.ok && data.user) {
+                    showMessage(
+                        "Sessão ativa. Bem-vinda à " +
+                        "FORJA ARCANA, " +
+                        data.user.name +
+                        "! O painel está sendo preparado.",
+                        "success"
+                    );
+                }
+            } catch {
+                // Falhas temporárias de conexão
+                // não devem bloquear o formulário.
+            }
+        }
+
         form.addEventListener(
             "submit",
-            function (event) {
+            async function (event) {
                 event.preventDefault();
 
-                showMessage(
-                    "O portal está sendo preparado. " +
-                    "A autenticação segura será " +
-                    "ativada em breve."
-                );
+                if (submitting) {
+                    return;
+                }
+
+                clearMessage();
+
+                const username =
+                    usernameInput.value.trim();
+
+                const password =
+                    passwordInput.value;
+
+                if (!username || !password) {
+                    showMessage(
+                        "Preencha o usuário e a senha.",
+                        "error"
+                    );
+                    return;
+                }
+
+                setLoading(true);
+
+                try {
+                    const response = await fetch(
+                        "/api/forja/login",
+                        {
+                            method: "POST",
+
+                            credentials: "same-origin",
+
+                            cache: "no-store",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                username,
+                                password
+                            })
+                        }
+                    );
+
+                    let data;
+
+                    try {
+                        data = await response.json();
+                    } catch {
+                        throw new Error(
+                            "Resposta inválida do servidor."
+                        );
+                    }
+
+                    if (!response.ok || !data.ok) {
+                        showMessage(
+                            data.error ||
+                            "Não foi possível entrar.",
+                            "error"
+                        );
+                        return;
+                    }
+
+                    // Limpa a senha da memória
+                    // mantida pelo formulário.
+                    passwordInput.value = "";
+
+                    showMessage(
+                        "Acesso autorizado! " +
+                        "Bem-vinda à FORJA ARCANA, " +
+                        data.user.name +
+                        "! 👑 O painel administrativo " +
+                        "será liberado nas próximas etapas.",
+                        "success"
+                    );
+                } catch {
+                    showMessage(
+                        "Não foi possível conectar " +
+                        "ao servidor. Tente novamente " +
+                        "em alguns instantes.",
+                        "error"
+                    );
+                } finally {
+                    setLoading(false);
+                }
             }
         );
+
+        checkExistingSession();
     </script>
 </body>
 </html>

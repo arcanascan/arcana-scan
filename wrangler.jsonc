@@ -18,5 +18,13 @@
             "database_name": "arcana-forja-db",
             "database_id": "31c25707-770d-4e5d-b620-67570d77f6ac"
         }
-    ]
+    ],
+
+    "observability": {
+        "logs": {
+            "enabled": true,
+            "invocation_logs": true,
+            "persist": true
+        }
+    }
 }

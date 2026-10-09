@@ -31,6 +31,13 @@ function toHex(buffer) {
     ).join("");
 }
 
+function hexToBytes(hex) {
+    return Uint8Array.from(
+        hex.match(/.{2}/g),
+        pair => parseInt(pair, 16)
+    );
+}
+
 function constantTimeEqual(a, b) {
     const encoder = new TextEncoder();
     const left = encoder.encode(a);
@@ -55,27 +62,52 @@ async function sha256Hex(value) {
     return toHex(digest);
 }
 
-async function hashPassword(password) {
+// Protege a senha com uma chave secreta do servidor.
+// A chave nunca é salva no banco de dados.
+async function pepperPassword(password, authSecret) {
+    const key = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(authSecret),
+        {
+            name: "HMAC",
+            hash: "SHA-256"
+        },
+        false,
+        ["sign"]
+    );
+
+    const signature = await crypto.subtle.sign(
+        "HMAC",
+        key,
+        new TextEncoder().encode(password)
+    );
+
+    return new Uint8Array(signature);
+}
+
+// Formato versionado para permitir verificação no login futuro.
+// Importante: não alterar o algoritmo sem migrar os hashes.
+async function hashPassword(password, authSecret) {
     const salt = randomHex(16);
-    const iterations = 600000;
+    const iterations = 100000;
+
+    const pepperedPassword = await pepperPassword(
+        password,
+        authSecret
+    );
 
     const keyMaterial = await crypto.subtle.importKey(
         "raw",
-        new TextEncoder().encode(password),
+        pepperedPassword,
         "PBKDF2",
         false,
         ["deriveBits"]
     );
 
-    const saltBytes = Uint8Array.from(
-        salt.match(/.{2}/g),
-        hex => parseInt(hex, 16)
-    );
-
     const derived = await crypto.subtle.deriveBits(
         {
             name: "PBKDF2",
-            salt: saltBytes,
+            salt: hexToBytes(salt),
             iterations,
             hash: "SHA-256"
         },
@@ -83,20 +115,35 @@ async function hashPassword(password) {
         256
     );
 
-    return `pbkdf2_sha256$${iterations}$${salt}$${toHex(derived)}`;
+    return [
+        "pbkdf2_sha256_hmacpepper_v1",
+        iterations,
+        salt,
+        toHex(derived)
+    ].join("$");
 }
 
 async function createOwner(request, env) {
     if (request.method !== "POST") {
         return json(
-            { ok: false, error: "Método não permitido." },
+            {
+                ok: false,
+                error: "Método não permitido."
+            },
             405
         );
     }
 
-    if (!env.DB || !env.FORJA_SETUP_SECRET) {
+    if (
+        !env.DB ||
+        !env.FORJA_SETUP_SECRET ||
+        !env.FORJA_AUTH_SECRET
+    ) {
         return json(
-            { ok: false, error: "Configuração indisponível." },
+            {
+                ok: false,
+                error: "Configuração indisponível."
+            },
             503
         );
     }
@@ -106,7 +153,10 @@ async function createOwner(request, env) {
 
     if (origin !== expectedOrigin) {
         return json(
-            { ok: false, error: "Origem não autorizada." },
+            {
+                ok: false,
+                error: "Origem não autorizada."
+            },
             403
         );
     }
@@ -114,11 +164,16 @@ async function createOwner(request, env) {
     const contentType =
         request.headers.get("Content-Type") || "";
 
-    if (!contentType.toLowerCase().startsWith(
-        "application/json"
-    )) {
+    if (
+        !contentType.toLowerCase().startsWith(
+            "application/json"
+        )
+    ) {
         return json(
-            { ok: false, error: "Formato inválido." },
+            {
+                ok: false,
+                error: "Formato inválido."
+            },
             415
         );
     }
@@ -129,7 +184,10 @@ async function createOwner(request, env) {
 
     if (contentLength > 8192) {
         return json(
-            { ok: false, error: "Dados muito grandes." },
+            {
+                ok: false,
+                error: "Dados muito grandes."
+            },
             413
         );
     }
@@ -141,7 +199,10 @@ async function createOwner(request, env) {
 
         if (raw.length > 8192) {
             return json(
-                { ok: false, error: "Dados muito grandes." },
+                {
+                    ok: false,
+                    error: "Dados muito grandes."
+                },
                 413
             );
         }
@@ -149,7 +210,10 @@ async function createOwner(request, env) {
         body = JSON.parse(raw);
     } catch {
         return json(
-            { ok: false, error: "Dados inválidos." },
+            {
+                ok: false,
+                error: "Dados inválidos."
+            },
             400
         );
     }
@@ -160,7 +224,10 @@ async function createOwner(request, env) {
         Array.isArray(body)
     ) {
         return json(
-            { ok: false, error: "Dados inválidos." },
+            {
+                ok: false,
+                error: "Dados inválidos."
+            },
             400
         );
     }
@@ -181,7 +248,10 @@ async function createOwner(request, env) {
         typeof setupSecret !== "string"
     ) {
         return json(
-            { ok: false, error: "Preencha todos os campos." },
+            {
+                ok: false,
+                error: "Preencha todos os campos."
+            },
             400
         );
     }
@@ -211,7 +281,10 @@ async function createOwner(request, env) {
 
     try {
         const existing = await env.DB.prepare(
-            "SELECT id FROM forja_users WHERE role = 'owner' LIMIT 1"
+            `SELECT id
+             FROM forja_users
+             WHERE role = 'owner'
+             LIMIT 1`
         ).first();
 
         if (existing) {
@@ -228,11 +301,16 @@ async function createOwner(request, env) {
 
         if (!ip) {
             return json(
-                { ok: false, error: "Origem indisponível." },
+                {
+                    ok: false,
+                    error: "Origem indisponível."
+                },
                 403
             );
         }
 
+        // Identificador pseudônimo da origem.
+        // Não armazenamos o endereço IP completo.
         const ipHash = await sha256Hex(
             env.FORJA_SETUP_SECRET + ":" + ip
         );
@@ -252,14 +330,18 @@ async function createOwner(request, env) {
                     error: "Muitas tentativas. Aguarde 30 minutos."
                 },
                 429,
-                { "Retry-After": "1800" }
+                {
+                    "Retry-After": "1800"
+                }
             );
         }
 
-        if (!constantTimeEqual(
-            setupSecret,
-            env.FORJA_SETUP_SECRET
-        )) {
+        if (
+            !constantTimeEqual(
+                setupSecret,
+                env.FORJA_SETUP_SECRET
+            )
+        ) {
             await env.DB.prepare(
                 `INSERT INTO forja_setup_attempts
                     (ip_hash, success)
@@ -267,18 +349,34 @@ async function createOwner(request, env) {
             ).bind(ipHash).run();
 
             return json(
-                { ok: false, error: "Não autorizado." },
+                {
+                    ok: false,
+                    error: "Não autorizado."
+                },
                 403
             );
         }
 
         const id = crypto.randomUUID();
-        const passwordHash = await hashPassword(password);
+
+        const passwordHash = await hashPassword(
+            password,
+            env.FORJA_AUTH_SECRET
+        );
 
         await env.DB.prepare(
             `INSERT INTO forja_users
-                (id, name, email, username, password_hash, role, status)
-             VALUES (?, ?, ?, ?, ?, 'owner', 'active')`
+                (
+                    id,
+                    name,
+                    email,
+                    username,
+                    password_hash,
+                    role,
+                    status
+                )
+             VALUES
+                (?, ?, ?, ?, ?, 'owner', 'active')`
         ).bind(
             id,
             cleanName,
@@ -287,11 +385,20 @@ async function createOwner(request, env) {
             passwordHash
         ).run();
 
-        await env.DB.prepare(
-            `INSERT INTO forja_setup_attempts
-                (ip_hash, success)
-             VALUES (?, 1)`
-        ).bind(ipHash).run();
+        // O cadastro já foi concluído neste ponto.
+        // Falhas no registro auxiliar não devem
+        // transformar o sucesso em erro.
+        try {
+            await env.DB.prepare(
+                `INSERT INTO forja_setup_attempts
+                    (ip_hash, success)
+                 VALUES (?, 1)`
+            ).bind(ipHash).run();
+        } catch {
+            console.error(
+                "FORJA setup success log failed"
+            );
+        }
 
         return json(
             {
@@ -303,7 +410,9 @@ async function createOwner(request, env) {
     } catch (error) {
         console.error(
             "FORJA owner setup failed:",
-            error instanceof Error ? error.name : "Unknown"
+            error instanceof Error
+                ? error.name
+                : "Unknown"
         );
 
         return json(

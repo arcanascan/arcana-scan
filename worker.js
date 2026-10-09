@@ -860,6 +860,248 @@ async function logout(request, env) {
 }
 
 // ==========================================
+// BIBLIOTECA DE OBRAS — VALIDAÇÕES
+// ==========================================
+
+const WORK_TYPES = new Set([
+    "manga", "manhwa", "manhua", "webtoon"
+]);
+const STORY_STATUSES = new Set([
+    "ongoing", "completed", "hiatus", "cancelled"
+]);
+const DECENSOR_TYPES = new Set([
+    "none", "official", "arcana"
+]);
+const READING_STYLES = new Set([
+    "vertical", "horizontal"
+]);
+
+function workError(message, status = 400) {
+    return json({ ok: false, error: message }, status);
+}
+
+function cleanRequiredText(value, maxLength) {
+    if (typeof value !== "string") return null;
+    const cleaned = value.trim();
+    return cleaned && cleaned.length <= maxLength ? cleaned : null;
+}
+
+function cleanOptionalText(value, maxLength) {
+    if (value === undefined || value === null || value === "") return null;
+    if (typeof value !== "string") return undefined;
+    const cleaned = value.trim();
+    return cleaned.length <= maxLength ? (cleaned || null) : undefined;
+}
+
+function createWorkSlug(title) {
+    return title.normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 80)
+        .replace(/-+$/g, "");
+}
+
+function parseNewWork(body) {
+    const allowedFields = new Set([
+        "title", "alternative_title", "slug", "synopsis",
+        "work_type", "story_status", "release_year", "author",
+        "artist", "scan_name", "age_rating", "is_adult",
+        "is_one_shot", "decensor_type", "expected_chapters",
+        "update_days", "reading_style", "image_gap",
+        "seo_title", "seo_description"
+    ]);
+
+    for (const field of Object.keys(body)) {
+        if (!allowedFields.has(field)) {
+            return { error: "Campo não permitido: " + field };
+        }
+    }
+
+    const title = cleanRequiredText(body.title, 200);
+    if (!title) return { error: "Informe um título válido (até 200 caracteres)." };
+
+    let slug;
+    if (body.slug === undefined || body.slug === null || body.slug === "") {
+        slug = createWorkSlug(title);
+    } else if (typeof body.slug === "string") {
+        slug = body.slug.trim().toLowerCase();
+    } else {
+        return { error: "Endereço da obra inválido." };
+    }
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 80) {
+        return { error: "Endereço inválido. Use letras minúsculas, números e hífens (até 80 caracteres)." };
+    }
+
+    const textFields = {
+        alternative_title: 200, synopsis: 4000, author: 200,
+        artist: 200, scan_name: 200, age_rating: 40,
+        update_days: 100, seo_title: 200, seo_description: 350
+    };
+    const values = { title, slug };
+    for (const [field, limit] of Object.entries(textFields)) {
+        const cleaned = cleanOptionalText(body[field], limit);
+        if (cleaned === undefined) {
+            return { error: "Texto inválido no campo: " + field };
+        }
+        values[field] = cleaned;
+    }
+
+    const enums = {
+        work_type: [WORK_TYPES, "manhwa"],
+        story_status: [STORY_STATUSES, "ongoing"],
+        decensor_type: [DECENSOR_TYPES, "none"],
+        reading_style: [READING_STYLES, "vertical"]
+    };
+    for (const [field, [choices, fallback]] of Object.entries(enums)) {
+        const value = body[field] === undefined ? fallback : body[field];
+        if (!choices.has(value)) {
+            return { error: "Valor inválido no campo: " + field };
+        }
+        values[field] = value;
+    }
+
+    for (const field of ["is_adult", "is_one_shot"]) {
+        const value = body[field] === undefined ? false : body[field];
+        if (typeof value !== "boolean") {
+            return { error: "Use verdadeiro ou falso no campo: " + field };
+        }
+        values[field] = value ? 1 : 0;
+    }
+
+    const year = body.release_year;
+    if (year !== undefined && year !== null &&
+        (!Number.isInteger(year) || year < 1800 || year > 2200)) {
+        return { error: "Ano de lançamento inválido." };
+    }
+    values.release_year = year ?? null;
+
+    const expected = body.expected_chapters;
+    if (expected !== undefined && expected !== null &&
+        (!Number.isInteger(expected) || expected < 0 || expected > 100000)) {
+        return { error: "Quantidade prevista de capítulos inválida." };
+    }
+    values.expected_chapters = expected ?? null;
+
+    const gap = body.image_gap === undefined ? 0 : body.image_gap;
+    if (!Number.isInteger(gap) || gap < 0 || gap > 500) {
+        return { error: "Espaçamento de imagens inválido." };
+    }
+    values.image_gap = gap;
+
+    // Nunca aceitar publication_status, cover_key ou banner_key do cliente.
+    // Publicação e arquivos exigirão fluxos próprios e protegidos.
+    values.publication_status = "draft";
+    return { values };
+}
+
+// ==========================================
+// BIBLIOTECA DE OBRAS — ROTAS PROTEGIDAS
+// ==========================================
+
+async function worksApi(request, env) {
+    if (request.method !== "GET" && request.method !== "POST") {
+        return workError("Método não permitido.", 405);
+    }
+    if (!env.DB) {
+        return workError("Configuração indisponível.", 503);
+    }
+    if (request.method === "POST" && !isSameOrigin(request)) {
+        return workError("Origem não autorizada.", 403);
+    }
+
+    try {
+        const session = await findSession(request, env);
+        if (!session) return workError("Não autenticado.", 401);
+
+        if (!["owner", "admin", "moderator"].includes(session.role)) {
+            return workError("Permissão insuficiente.", 403);
+        }
+
+        if (request.method === "GET") {
+            const result = await env.DB.prepare(
+                `SELECT id, title, alternative_title, slug, synopsis,
+                        work_type, story_status, publication_status,
+                        release_year, author, artist, scan_name,
+                        age_rating, is_adult, is_one_shot, decensor_type,
+                        expected_chapters, update_days, reading_style,
+                        image_gap, seo_title, seo_description,
+                        created_at, updated_at
+                 FROM forja_works
+                 ORDER BY created_at DESC, id DESC
+                 LIMIT 50`
+            ).all();
+            return json({ ok: true, works: result.results || [] });
+        }
+
+        const parsed = await readJsonBody(request);
+        if (!parsed.ok) return workError(parsed.error, parsed.status);
+
+        const checked = parseNewWork(parsed.body);
+        if (checked.error) return workError(checked.error);
+        const w = checked.values;
+        const workId = crypto.randomUUID();
+
+        const insert = env.DB.prepare(
+            `INSERT INTO forja_works (
+                id, title, alternative_title, slug, synopsis,
+                work_type, story_status, publication_status,
+                release_year, author, artist, scan_name, age_rating,
+                is_adult, is_one_shot, decensor_type, expected_chapters,
+                update_days, reading_style, image_gap, seo_title,
+                seo_description, created_by, updated_by
+            ) VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            )`
+        ).bind(
+            workId, w.title, w.alternative_title, w.slug, w.synopsis,
+            w.work_type, w.story_status, w.publication_status,
+            w.release_year, w.author, w.artist, w.scan_name,
+            w.age_rating, w.is_adult, w.is_one_shot, w.decensor_type,
+            w.expected_chapters, w.update_days, w.reading_style,
+            w.image_gap, w.seo_title, w.seo_description,
+            session.user_id, session.user_id
+        );
+
+        const audit = env.DB.prepare(
+            `INSERT INTO forja_audit_logs
+                (user_id, action, entity_type, entity_id, description, details)
+             VALUES (?, ?, ?, ?, ?, ?)`
+        ).bind(
+            session.user_id,
+            "work.create",
+            "work",
+            workId,
+            "Obra cadastrada como rascunho.",
+            JSON.stringify({ title: w.title, slug: w.slug, publication_status: "draft" })
+        );
+
+        // D1 executa batch de escrita como transação: obra e auditoria juntas.
+        await env.DB.batch([insert, audit]);
+        return json({
+            ok: true,
+            message: "Obra cadastrada como rascunho.",
+            work: {
+                id: workId,
+                title: w.title,
+                slug: w.slug,
+                publication_status: "draft"
+            }
+        }, 201);
+    } catch (error) {
+        // Não revelar SQL nem detalhes internos ao navegador.
+        const message = String(error instanceof Error ? error.message : "");
+        if (/UNIQUE constraint failed: forja_works.slug/i.test(message)) {
+            return workError("Este endereço de obra já está em uso.", 409);
+        }
+        console.error("FORJA works API failed:", error instanceof Error ? error.name : "Unknown");
+        return workError("Não foi possível processar as obras neste momento.", 500);
+    }
+}
+
+// ==========================================
 // WORKER PRINCIPAL — ARCANA SCAN
 // ==========================================
 
@@ -927,6 +1169,14 @@ export default {
             url.pathname === "/api/forja/logout"
         ) {
             return logout(request, env);
+        }
+
+        // ======================================
+        // BIBLIOTECA DE OBRAS
+        // ======================================
+
+        if (url.pathname === "/api/forja/works") {
+            return worksApi(request, env);
         }
 
         // ======================================

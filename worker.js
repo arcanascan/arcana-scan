@@ -2,7 +2,8 @@
 const JSON_HEADERS = {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store",
-    "X-Content-Type-Options": "nosniff"
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer"
 };
 
 function json(data, status = 200, extraHeaders = {}) {
@@ -329,28 +330,6 @@ export default {
                 service: "ARCANA SCAN",
                 status: "online"
             });
-        }
-
-        // ==========================================
-        // DIAGNÓSTICO TEMPORÁRIO DA FORJA
-        // REMOVER DEPOIS DO TESTE
-        // ==========================================
-
-        if (
-            url.pathname === "/api/forja/config-check" &&
-            request.method === "GET"
-        ) {
-            const hasDB = Boolean(env.DB);
-            const hasSetupSecret = Boolean(env.FORJA_SETUP_SECRET);
-
-            return json(
-                {
-                    ok: hasDB && hasSetupSecret,
-                    database: hasDB ? "configured" : "missing",
-                    setupSecret: hasSetupSecret ? "configured" : "missing"
-                },
-                hasDB && hasSetupSecret ? 200 : 503
-            );
         }
 
         // ==========================================

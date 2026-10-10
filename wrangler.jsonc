@@ -21,6 +21,13 @@
         }
     ],
 
+"r2_buckets": [
+  {
+    "binding": "MEDIA",
+    "bucket_name": "arcana-media"
+  }
+],
+
     "observability": {
         "logs": {
             "enabled": true,

@@ -1374,12 +1374,14 @@ export default {
         // ROTAS DESCONHECIDAS
         // ======================================
 
+             if (env.ASSETS) {
+            return env.ASSETS.fetch(request);
+        }
+
         return json(
             {
                 ok: false,
-                error: "Not Found"
+                error: "Arquivos do site indisponíveis."
             },
-            404
+            503
         );
-    }
-};

@@ -1258,6 +1258,510 @@ async function usersApi(request, env, userId = null) {
     }
 }
 
+// ================================================================
+// CONTAS DOS LEITORES — ISOLADAS DAS CONTAS ADMINISTRATIVAS
+// ================================================================
+const READER_COOKIE = "__Host-arcana_reader";
+const READER_SESSION_SECONDS = 30 * 24 * 60 * 60;
+
+function readerCookie(token) {
+    return [
+        `${READER_COOKIE}=${token}`,
+        "Path=/", "HttpOnly", "Secure", "SameSite=Lax",
+        `Max-Age=${READER_SESSION_SECONDS}`
+    ].join("; ");
+}
+
+function clearReaderCookie() {
+    return [
+        `${READER_COOKIE}=`, "Path=/", "HttpOnly", "Secure",
+        "SameSite=Lax", "Max-Age=0"
+    ].join("; ");
+}
+
+function readReaderToken(request) {
+    const header = request.headers.get("Cookie") || "";
+    for (const part of header.split(";")) {
+        const index = part.indexOf("=");
+        if (index < 0) continue;
+        if (part.slice(0, index).trim() !== READER_COOKIE) continue;
+        const token = part.slice(index + 1).trim();
+        return /^[a-f0-9]{64}$/.test(token) ? token : null;
+    }
+    return null;
+}
+
+async function readerSession(request, env) {
+    const token = readReaderToken(request);
+    if (!token) return null;
+    const tokenHash = await sha256Hex(token);
+    return await env.DB.prepare(
+        `SELECT s.id AS session_id, u.id, u.username, u.email
+         FROM reader_sessions s JOIN reader_users u ON u.id = s.reader_id
+         WHERE s.token_hash = ? AND s.revoked_at IS NULL
+           AND datetime(s.expires_at) > datetime('now')
+           AND u.status = 'active' LIMIT 1`
+    ).bind(tokenHash).first();
+}
+
+function readerError(message, status = 400) {
+    return json({ ok: false, error: message }, status);
+}
+
+async function readerRateLimit(db, ipHash, action, identity = "") {
+    const result = await db.prepare(
+        `SELECT COUNT(*) AS total FROM reader_auth_attempts
+         WHERE ip_hash = ? AND action = ? AND (action = 'register' OR success = 0)
+           AND attempted_at >= datetime('now', '-15 minutes')`
+    ).bind(ipHash, action).first();
+    const limit = action === "register" ? 5 : 20;
+    if (Number(result?.total || 0) >= limit) return true;
+    if (action === "login") {
+        const targeted = await db.prepare(
+            `SELECT COUNT(*) AS total FROM reader_auth_attempts
+             WHERE ip_hash = ? AND action = 'login' AND identity = ?
+               AND success = 0
+               AND attempted_at >= datetime('now', '-15 minutes')`
+        ).bind(ipHash, identity).first();
+        if (Number(targeted?.total || 0) >= 5) return true;
+    }
+    return false;
+}
+
+async function readerAttempt(db, ipHash, action, identity, success) {
+    await db.prepare(
+        `INSERT INTO reader_auth_attempts(ip_hash, identity, action, success)
+         VALUES (?, ?, ?, ?)`
+    ).bind(ipHash, identity, action, success ? 1 : 0).run();
+}
+
+async function readerApi(request, env, action) {
+    const method = request.method;
+    const expected = action === "me" ? "GET" : "POST";
+    if (method !== expected) return readerError("Método não permitido.", 405);
+    if (!env.DB || !env.FORJA_AUTH_SECRET) {
+        return readerError("Serviço temporariamente indisponível.", 503);
+    }
+    if (method === "POST" && !isSameOrigin(request)) {
+        return readerError("Origem não autorizada.", 403);
+    }
+
+    try {
+        if (action === "me") {
+            const session = await readerSession(request, env);
+            if (!session) return readerError("Não autenticado.", 401);
+            return json({ ok: true, reader: {
+                id: session.id, username: session.username, email: session.email
+            }});
+        }
+        if (action === "logout") {
+            const token = readReaderToken(request);
+            if (token) {
+                await env.DB.prepare(
+                    `UPDATE reader_sessions SET revoked_at = CURRENT_TIMESTAMP
+                     WHERE token_hash = ? AND revoked_at IS NULL`
+                ).bind(await sha256Hex(token)).run();
+            }
+            return json({ ok: true, message: "Sessão encerrada." }, 200, {
+                "Set-Cookie": clearReaderCookie()
+            });
+        }
+
+        const parsed = await readJsonBody(request);
+        if (!parsed.ok) return readerError(parsed.error, parsed.status);
+        const body = parsed.body;
+        const ipHash = await getIpHash(request, env.FORJA_AUTH_SECRET);
+        if (!ipHash) return readerError("Origem indisponível.", 403);
+
+        if (action === "register") {
+            if (Object.keys(body).some(k => ![
+                "username", "email", "password", "acceptTerms"
+            ].includes(k))) return readerError("Campos inválidos.");
+
+            const username = typeof body.username === "string"
+                ? body.username.trim().toLowerCase() : "";
+            const email = typeof body.email === "string"
+                ? body.email.trim().toLowerCase() : "";
+            const password = body.password;
+            if (!/^[a-z0-9_]{3,32}$/.test(username)) {
+                return readerError("Usuário: 3 a 32 letras, números ou _. ");
+            }
+            if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                return readerError("E-mail inválido.");
+            }
+            if (typeof password !== "string" || password.length < 12 || password.length > 128) {
+                return readerError("A senha deve ter de 12 a 128 caracteres.");
+            }
+            if (body.acceptTerms !== true) {
+                return readerError("É necessário aceitar os termos e a política de privacidade.");
+            }
+            if (await readerRateLimit(env.DB, ipHash, "register", username)) {
+                return readerError("Muitas tentativas. Aguarde 15 minutos.", 429);
+            }
+            const existing = await env.DB.prepare(
+                `SELECT id FROM reader_users
+                 WHERE username = ? COLLATE NOCASE OR email = ? COLLATE NOCASE LIMIT 1`
+            ).bind(username, email).first();
+            if (existing) {
+                await readerAttempt(env.DB, ipHash, "register", username, false);
+                return readerError("Usuário ou e-mail já cadastrado.", 409);
+            }
+            const salt = randomHex(16);
+            const hash = await derivePasswordHash(
+                "reader:v1:" + password, env.FORJA_AUTH_SECRET, salt, 100000
+            );
+            const storedHash = `pbkdf2_sha256_hmacpepper_v1$100000$${salt}$${hash}`;
+            const id = crypto.randomUUID();
+            try {
+                await env.DB.prepare(
+                    `INSERT INTO reader_users(id,username,email,password_hash)
+                     VALUES(?,?,?,?)`
+                ).bind(id, username, email, storedHash).run();
+            } catch (e) {
+                if (/UNIQUE constraint failed/i.test(String(e?.message || ""))) {
+                    return readerError("Usuário ou e-mail já cadastrado.", 409);
+                }
+                throw e;
+            }
+            try { await readerAttempt(env.DB, ipHash, "register", username, true); }
+            catch { console.error("Reader registration log failed"); }
+            return json({ ok: true, message: "Conta criada. Faça seu login." }, 201);
+        }
+
+        if (action === "login") {
+            if (Object.keys(body).some(k => !["identity", "password"].includes(k))) {
+                return readerError("Campos inválidos.");
+            }
+            const identity = typeof body.identity === "string"
+                ? body.identity.trim().toLowerCase() : "";
+            const password = body.password;
+            if (!identity || identity.length > 254 ||
+                typeof password !== "string" || password.length > 128) {
+                return readerError("Usuário ou senha inválidos.", 401);
+            }
+            if (await readerRateLimit(env.DB, ipHash, "login", identity)) {
+                return readerError("Muitas tentativas. Aguarde 15 minutos.", 429);
+            }
+            const reader = await env.DB.prepare(
+                `SELECT id,username,email,password_hash,status FROM reader_users
+                 WHERE username = ? COLLATE NOCASE OR email = ? COLLATE NOCASE LIMIT 1`
+            ).bind(identity, identity).first();
+            const valid = !!reader && reader.status === "active" &&
+                await verifyPassword("reader:v1:" + password,
+                    reader.password_hash, env.FORJA_AUTH_SECRET);
+            if (!valid) {
+                await readerAttempt(env.DB, ipHash, "login", identity, false);
+                return readerError("Usuário ou senha inválidos.", 401);
+            }
+            const token = randomHex(32);
+            const expiresAt = new Date(
+                Date.now() + READER_SESSION_SECONDS * 1000
+            ).toISOString();
+            await env.DB.prepare(
+                `INSERT INTO reader_sessions(id,reader_id,token_hash,expires_at)
+                 VALUES(?,?,?,?)`
+            ).bind(crypto.randomUUID(), reader.id,
+                await sha256Hex(token), expiresAt).run();
+            return json({ ok: true, reader: {
+                id: reader.id, username: reader.username, email: reader.email
+            }}, 200, { "Set-Cookie": readerCookie(token) });
+        }
+        return readerError("Rota não encontrada.", 404);
+    } catch (error) {
+        console.error("Reader API failed:", error instanceof Error ? error.name : "Unknown");
+        return readerError("Não foi possível concluir a operação.", 500);
+    }
+}
+
+// ================================================================
+// FORJA — EDIÇÃO DE OBRAS, ESTADO EDITORIAL E AUDITORIA
+// ================================================================
+const WORK_EDIT_FIELDS = [
+    "title", "alternative_title", "slug", "synopsis", "work_type",
+    "story_status", "release_year", "author", "artist", "scan_name",
+    "age_rating", "is_adult", "is_one_shot", "decensor_type",
+    "expected_chapters", "update_days", "reading_style", "image_gap",
+    "seo_title", "seo_description"
+];
+
+async function workDetailApi(request, env, workId, statusRoute = false) {
+    const method = request.method;
+    if (!/^[0-9a-f-]{36}$/i.test(workId)) return workError("ID inválido.");
+    if (statusRoute ? method !== "POST" : !["GET", "PATCH"].includes(method)) {
+        return workError("Método não permitido.", 405);
+    }
+    if (!env.DB) return workError("Serviço indisponível.", 503);
+    if (method !== "GET" && !isSameOrigin(request)) {
+        return workError("Origem não autorizada.", 403);
+    }
+    try {
+        const session = await findSession(request, env);
+        if (!session) return workError("Não autenticado.", 401);
+        if (!["owner", "admin", "moderator"].includes(session.role)) {
+            return workError("Acesso negado.", 403);
+        }
+        const work = await env.DB.prepare(
+            `SELECT id,title,alternative_title,slug,synopsis,work_type,
+                story_status,publication_status,release_year,author,artist,
+                scan_name,age_rating,is_adult,is_one_shot,decensor_type,
+                expected_chapters,update_days,reading_style,image_gap,
+                seo_title,seo_description,created_at,updated_at
+             FROM forja_works WHERE id = ? LIMIT 1`
+        ).bind(workId).first();
+        if (!work) return workError("Obra não encontrada.", 404);
+        if (method === "GET") return json({ ok: true, work });
+        const parsed = await readJsonBody(request);
+        if (!parsed.ok) return workError(parsed.error, parsed.status);
+
+        if (statusRoute) {
+            if (!["owner", "admin"].includes(session.role)) {
+                return workError("Somente a administração pode alterar a publicação.", 403);
+            }
+            const keys = Object.keys(parsed.body);
+            const status = parsed.body.publication_status;
+            if (keys.length !== 1 || !["draft", "upcoming", "published"].includes(status)) {
+                return workError("Situação editorial inválida.");
+            }
+            const update = env.DB.prepare(
+                `UPDATE forja_works SET publication_status = ?,
+                    updated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+            ).bind(status, session.user_id, workId);
+            const audit = env.DB.prepare(
+                `INSERT INTO forja_audit_logs
+                    (user_id,action,entity_type,entity_id,description,details)
+                 VALUES(?,?,?,?,?,?)`
+            ).bind(session.user_id, "work.status", "work", workId,
+                "Situação editorial alterada.",
+                JSON.stringify({ before: work.publication_status, after: status }));
+            await env.DB.batch([update, audit]);
+            return json({ ok: true, publication_status: status });
+        }
+
+        const changes = parsed.body;
+        const keys = Object.keys(changes);
+        if (!keys.length || keys.some(k => !WORK_EDIT_FIELDS.includes(k))) {
+            return workError("Informe somente campos editáveis da obra.");
+        }
+        const merged = {};
+        for (const key of WORK_EDIT_FIELDS) {
+            merged[key] = Object.hasOwn(changes, key) ? changes[key] : work[key];
+        }
+        for (const key of ["is_adult", "is_one_shot"]) {
+            if (!Object.hasOwn(changes, key)) merged[key] = work[key] === 1;
+        }
+        const checked = parseNewWork(merged);
+        if (checked.error) return workError(checked.error);
+        const w = checked.values;
+        const update = env.DB.prepare(
+            `UPDATE forja_works SET
+              title=?,alternative_title=?,slug=?,synopsis=?,work_type=?,
+              story_status=?,release_year=?,author=?,artist=?,scan_name=?,
+              age_rating=?,is_adult=?,is_one_shot=?,decensor_type=?,
+              expected_chapters=?,update_days=?,reading_style=?,image_gap=?,
+              seo_title=?,seo_description=?,updated_by=?,updated_at=CURRENT_TIMESTAMP
+             WHERE id=?`
+        ).bind(
+            w.title,w.alternative_title,w.slug,w.synopsis,w.work_type,
+            w.story_status,w.release_year,w.author,w.artist,w.scan_name,
+            w.age_rating,w.is_adult,w.is_one_shot,w.decensor_type,
+            w.expected_chapters,w.update_days,w.reading_style,w.image_gap,
+            w.seo_title,w.seo_description,session.user_id,workId
+        );
+        const audit = env.DB.prepare(
+            `INSERT INTO forja_audit_logs
+                (user_id,action,entity_type,entity_id,description,details)
+             VALUES(?,?,?,?,?,?)`
+        ).bind(session.user_id,"work.update","work",workId,
+            "Dados da obra atualizados.",JSON.stringify({ fields: keys }));
+        await env.DB.batch([update,audit]);
+        return json({ ok: true, message: "Obra atualizada.", work: {
+            id: workId, title: w.title, slug: w.slug,
+            publication_status: work.publication_status
+        }});
+    } catch (error) {
+        if (/UNIQUE constraint failed: forja_works.slug/i.test(String(error?.message || ""))) {
+            return workError("Este endereço de obra já está em uso.", 409);
+        }
+        console.error("Work detail failed:", error instanceof Error ? error.name : "Unknown");
+        return workError("Não foi possível atualizar a obra.", 500);
+    }
+}
+
+async function auditApi(request, env) {
+    if (request.method !== "GET") return workError("Método não permitido.", 405);
+    if (!env.DB) return workError("Serviço indisponível.", 503);
+    try {
+        const session = await findSession(request, env);
+        if (!session) return workError("Não autenticado.", 401);
+        if (!["owner", "admin", "moderator"].includes(session.role)) {
+            return workError("Acesso negado.", 403);
+        }
+        const rows = await env.DB.prepare(
+            `SELECT a.id,a.user_id,u.username,a.action,a.entity_type,
+                    a.entity_id,a.description,a.details,a.created_at
+             FROM forja_audit_logs a
+             LEFT JOIN forja_users u ON u.id=a.user_id
+             ORDER BY a.created_at DESC,a.id DESC LIMIT 100`
+        ).all();
+        return json({ ok: true, logs: rows.results || [] });
+    } catch (error) {
+        console.error("Audit failed:", error instanceof Error ? error.name : "Unknown");
+        return workError("Não foi possível consultar a auditoria.", 500);
+    }
+}
+
+// ================================================================
+// FORJA — GÊNEROS, TAGS, CAPÍTULOS (METADADOS), PUBLICAÇÕES (RASCUNHOS)
+// ================================================================
+async function taxonomyApi(request, env, type) {
+    const table = type === "genres" ? "forja_genres" : "forja_tags";
+    if (!["GET", "POST"].includes(request.method)) return workError("Método não permitido.", 405);
+    if (!env.DB) return workError("Serviço indisponível.", 503);
+    if (request.method === "POST" && !isSameOrigin(request)) return workError("Origem não autorizada.", 403);
+    try {
+        const session = await findSession(request, env);
+        if (!session) return workError("Não autenticado.", 401);
+        if (!["owner", "admin", "moderator"].includes(session.role)) return workError("Acesso negado.", 403);
+        if (request.method === "GET") {
+            const rows = await env.DB.prepare(`SELECT id,name,slug,created_at FROM ${table} ORDER BY name LIMIT 500`).all();
+            return json({ ok: true, items: rows.results || [] });
+        }
+        if (!["owner", "admin"].includes(session.role)) return workError("Somente a administração pode cadastrar.", 403);
+        const parsed = await readJsonBody(request);
+        if (!parsed.ok) return workError(parsed.error, parsed.status);
+        if (Object.keys(parsed.body).some(k => k !== "name")) return workError("Campos inválidos.");
+        const name = cleanRequiredText(parsed.body.name, 80);
+        if (!name) return workError("Informe o nome.");
+        const slug = createWorkSlug(name);
+        if (!slug) return workError("Nome inválido.");
+        const id = crypto.randomUUID();
+        await env.DB.batch([
+            env.DB.prepare(`INSERT INTO ${table}(id,name,slug) VALUES(?,?,?)`).bind(id,name,slug),
+            env.DB.prepare(`INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details) VALUES(?,?,?,?,?,?)`)
+                .bind(session.user_id,`${type}.create`,type,id,"Categoria cadastrada.",JSON.stringify({ name }))
+        ]);
+        return json({ ok: true, item: { id,name,slug } }, 201);
+    } catch (error) {
+        if (/UNIQUE constraint failed/i.test(String(error?.message || ""))) return workError("Nome já cadastrado.",409);
+        console.error("Taxonomy failed:",error instanceof Error ? error.name : "Unknown");
+        return workError("Não foi possível processar.",500);
+    }
+}
+
+async function chaptersApi(request, env) {
+    if (!["GET","POST"].includes(request.method)) return workError("Método não permitido.",405);
+    if (!env.DB) return workError("Serviço indisponível.",503);
+    if (request.method === "POST" && !isSameOrigin(request)) return workError("Origem não autorizada.",403);
+    try {
+        const session = await findSession(request,env);
+        if (!session) return workError("Não autenticado.",401);
+        if (!["owner","admin","moderator"].includes(session.role)) return workError("Acesso negado.",403);
+        if (request.method === "GET") {
+            const rows = await env.DB.prepare(
+                `SELECT c.id,c.work_id,w.title AS work_title,c.chapter_number,c.title,
+                        c.status,c.created_at,c.updated_at
+                 FROM forja_chapters c JOIN forja_works w ON w.id=c.work_id
+                 ORDER BY c.created_at DESC,c.id DESC LIMIT 100`
+            ).all();
+            return json({ok:true,chapters:rows.results||[]});
+        }
+        const parsed = await readJsonBody(request);
+        if (!parsed.ok) return workError(parsed.error,parsed.status);
+        const b = parsed.body;
+        if (Object.keys(b).some(k => !["work_id","chapter_number","title"].includes(k))) return workError("Campos inválidos.");
+        if (typeof b.work_id !== "string" || !/^[0-9a-f-]{36}$/i.test(b.work_id)) return workError("Obra inválida.");
+        if (typeof b.chapter_number !== "number" || !Number.isFinite(b.chapter_number) || b.chapter_number < 0 || b.chapter_number > 100000) return workError("Número inválido.");
+        const title = cleanOptionalText(b.title,200);
+        if (title === undefined) return workError("Título inválido.");
+        const work = await env.DB.prepare(`SELECT id FROM forja_works WHERE id=?`).bind(b.work_id).first();
+        if (!work) return workError("Obra não encontrada.",404);
+        const id = crypto.randomUUID();
+        await env.DB.batch([
+            env.DB.prepare(`INSERT INTO forja_chapters(id,work_id,chapter_number,title,created_by) VALUES(?,?,?,?,?)`)
+                .bind(id,b.work_id,b.chapter_number,title,session.user_id),
+            env.DB.prepare(`INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details) VALUES(?,?,?,?,?,?)`)
+                .bind(session.user_id,"chapter.create","chapter",id,"Capítulo criado como rascunho.",JSON.stringify({work_id:b.work_id,chapter_number:b.chapter_number}))
+        ]);
+        return json({ok:true,chapter:{id,work_id:b.work_id,chapter_number:b.chapter_number,status:"draft"}},201);
+    } catch (error) {
+        if (/UNIQUE constraint failed/i.test(String(error?.message||""))) return workError("Este capítulo já está cadastrado para a obra.",409);
+        console.error("Chapters failed:",error instanceof Error?error.name:"Unknown");
+        return workError("Não foi possível processar o capítulo.",500);
+    }
+}
+
+async function publicationsApi(request,env) {
+    if (!["GET","POST"].includes(request.method)) return workError("Método não permitido.",405);
+    if (!env.DB) return workError("Serviço indisponível.",503);
+    if (request.method === "POST" && !isSameOrigin(request)) return workError("Origem não autorizada.",403);
+    try {
+        const session = await findSession(request,env);
+        if (!session) return workError("Não autenticado.",401);
+        if (!["owner","admin","moderator"].includes(session.role)) return workError("Acesso negado.",403);
+        if (request.method === "GET") {
+            const rows = await env.DB.prepare(
+                `SELECT id,title,caption,platform,status,created_at,updated_at
+                 FROM forja_publications ORDER BY created_at DESC,id DESC LIMIT 100`
+            ).all();
+            return json({ok:true,publications:rows.results||[]});
+        }
+        const parsed = await readJsonBody(request);
+        if (!parsed.ok) return workError(parsed.error,parsed.status);
+        const b = parsed.body;
+        if (Object.keys(b).some(k => !["title","caption","platform"].includes(k))) return workError("Campos inválidos.");
+        const title = cleanRequiredText(b.title,200);
+        const caption = cleanOptionalText(b.caption,4000);
+        if (!title || caption === undefined || !["instagram","telegram","both"].includes(b.platform)) return workError("Preencha título, texto e plataforma corretamente.");
+        const id = crypto.randomUUID();
+        await env.DB.batch([
+            env.DB.prepare(`INSERT INTO forja_publications(id,title,caption,platform,created_by) VALUES(?,?,?,?,?)`)
+                .bind(id,title,caption,b.platform,session.user_id),
+            env.DB.prepare(`INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details) VALUES(?,?,?,?,?,?)`)
+                .bind(session.user_id,"publication.create","publication",id,"Publicação salva como rascunho.",JSON.stringify({title,platform:b.platform}))
+        ]);
+        return json({ok:true,publication:{id,title,platform:b.platform,status:"draft"}},201);
+    } catch (error) {
+        console.error("Publications failed:",error instanceof Error?error.name:"Unknown");
+        return workError("Não foi possível salvar a publicação.",500);
+    }
+}
+
+async function preferencesApi(request, env) {
+    if (!["GET","PATCH"].includes(request.method)) return workError("Método não permitido.",405);
+    if (!env.DB) return workError("Serviço indisponível.",503);
+    if (request.method === "PATCH" && !isSameOrigin(request)) return workError("Origem não autorizada.",403);
+    try {
+        const session = await findSession(request,env);
+        if (!session) return workError("Não autenticado.",401);
+        if (!["owner","admin","moderator"].includes(session.role)) return workError("Acesso negado.",403);
+        if (request.method === "GET") {
+            const rows = await env.DB.prepare(`SELECT key,value,updated_at FROM forja_preferences ORDER BY key LIMIT 100`).all();
+            return json({ok:true,preferences:rows.results||[]});
+        }
+        if (!["owner","admin"].includes(session.role)) return workError("Somente a administração pode alterar configurações.",403);
+        const parsed = await readJsonBody(request);
+        if (!parsed.ok) return workError(parsed.error,parsed.status);
+        const b = parsed.body;
+        if (Object.keys(b).length !== 2 || typeof b.key !== "string" ||
+            !/^(catalog|social)\.[a-z_]{1,40}$/.test(b.key) ||
+            typeof b.value !== "string" || b.value.length > 1000) {
+            return workError("Chave ou valor inválido.");
+        }
+        await env.DB.batch([
+            env.DB.prepare(`INSERT INTO forja_preferences(key,value,updated_by) VALUES(?,?,?)
+                ON CONFLICT(key) DO UPDATE SET value=excluded.value,
+                updated_by=excluded.updated_by,updated_at=CURRENT_TIMESTAMP`)
+                .bind(b.key,b.value,session.user_id),
+            env.DB.prepare(`INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details) VALUES(?,?,?,?,?,?)`)
+                .bind(session.user_id,"preferences.update","preferences",b.key,"Preferência atualizada.",JSON.stringify({key:b.key}))
+        ]);
+        return json({ok:true,message:"Preferência salva."});
+    } catch (error) {
+        console.error("Preferences failed:",error instanceof Error?error.name:"Unknown");
+        return workError("Não foi possível salvar as configurações.",500);
+    }
+}
+
 // ==========================================
 // WORKER PRINCIPAL — ARCANA SCAN
 // ==========================================
@@ -1346,6 +1850,29 @@ export default {
         const userMatch = url.pathname.match(/^\/api\/forja\/users\/([0-9a-f-]{36})$/i);
         if (userMatch) {
             return usersApi(request, env, userMatch[1]);
+        }
+
+        // ======================================
+        // LEITORES — SESSÕES SEPARADAS DA FORJA
+        // ======================================
+        const readerMatch = url.pathname.match(/^\/api\/reader\/(register|login|me|logout)$/);
+        if (readerMatch) return readerApi(request, env, readerMatch[1]);
+
+        // ======================================
+        // FORJA — EDIÇÃO E PUBLICAÇÃO CONTROLADA
+        // ======================================
+        const statusMatch = url.pathname.match(/^\/api\/forja\/works\/([0-9a-f-]{36})\/status$/i);
+        if (statusMatch) return workDetailApi(request, env, statusMatch[1], true);
+        const detailMatch = url.pathname.match(/^\/api\/forja\/works\/([0-9a-f-]{36})$/i);
+        if (detailMatch) return workDetailApi(request, env, detailMatch[1]);
+        if (url.pathname === "/api/forja/audit") return auditApi(request, env);
+        if (url.pathname === "/api/forja/genres") return taxonomyApi(request, env, "genres");
+        if (url.pathname === "/api/forja/tags") return taxonomyApi(request, env, "tags");
+        if (url.pathname === "/api/forja/chapters") return chaptersApi(request, env);
+        if (url.pathname === "/api/forja/publications") return publicationsApi(request, env);
+        if (url.pathname === "/api/forja/preferences") return preferencesApi(request, env);
+        if (url.pathname.startsWith("/api/reader/")) {
+            return readerError("Rota não encontrada.", 404);
         }
 
         // ======================================

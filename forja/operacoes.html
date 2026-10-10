@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Operações | FORJA ARCANA</title>
+<style>
+:root{color-scheme:dark;--bg:#0e0916;--panel:#1b1029;--border:#5e3979;--text:#f4eafa;--muted:#c0a7d1;--gold:#d7b477;--accent:#9b66c8}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#2c153d,#0e0916 65%);color:var(--text);font:15px/1.55 system-ui,Segoe UI,sans-serif}
+header{max-width:1150px;margin:auto;padding:36px 18px 20px}h1,h2{font-family:Georgia,serif}h1{font-size:clamp(28px,5vw,44px);margin:0;color:#f2d9fa}h2{margin:0 0 16px;color:var(--gold)}p{color:var(--muted)}a{color:#e0b9ff}nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}nav a{border:1px solid var(--border);border-radius:10px;padding:8px 12px;text-decoration:none}main{max-width:1150px;margin:auto;padding:10px 18px 80px}.panel{border:1px solid var(--border);border-radius:18px;background:linear-gradient(130deg,#21132d,#120b1a);padding:24px;margin:18px 0;box-shadow:0 12px 35px #0005}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:15px}.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}label{font-size:13px;color:#dbc3eb}input,select,textarea{width:100%;background:#100b17;color:#fff;border:1px solid #67477b;border-radius:9px;padding:12px;font:inherit}textarea{min-height:100px;resize:vertical}input[type=checkbox]{width:auto;accent-color:#9b66c8}button{background:#76509a;color:white;border:1px solid #b68bdb;border-radius:9px;padding:11px 18px;cursor:pointer;font:600 14px system-ui}button:hover{background:#8b61b0}button:disabled{opacity:.55;cursor:wait}.secondary{background:#2d203c}.warning{border-left:3px solid var(--gold);padding:8px 14px;background:#2b211c;color:#e9d5a5}.status{white-space:pre-wrap;min-height:1.4em;color:#d9bbfa}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.check{display:flex;gap:10px;align-items:center}.item{border:1px solid #4c355f;padding:12px;border-radius:10px;margin:8px 0;overflow-wrap:anywhere}.item small{color:var(--muted)}[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header><small>⚒️ FORJA ARCANA • CENTRAL DE OPERAÇÕES</small><h1>Grimório de Operações</h1><p>Ferramentas conectadas ao banco de dados. Ações administrativas exigem login e permissões.</p>
+<nav><a href="painel.html">🏰 Salão de Comando</a><a href="obras.html">📚 Biblioteca</a><a href="equipe.html">👑 Equipe</a><a href="editar-obra.html">✏️ Grimório visual</a></nav></header>
+<main id="app" hidden>
+<div class="panel"><div class="row"><strong id="welcome"></strong><button class="secondary" id="refresh" type="button">Atualizar dados</button></div><p id="globalStatus" class="status" role="status"></p></div>
+<section class="panel" id="workSection"><h2>📚 Editar obras</h2><div class="field"><label for="workSelect">Obra</label><select id="workSelect"><option value="">Selecione uma obra</option></select></div>
+<form id="workForm" hidden><div class="grid">
+<div class="field"><label>Título<input name="title" maxlength="200" required></label></div>
+<div class="field"><label>Título alternativo<input name="alternative_title" maxlength="200"></label></div>
+<div class="field"><label>Slug<input name="slug" maxlength="80" required></label></div>
+<div class="field"><label>Autor<input name="author" maxlength="200"></label></div>
+<div class="field"><label>Artista<input name="artist" maxlength="200"></label></div>
+<div class="field"><label>Scan<input name="scan_name" maxlength="200"></label></div>
+<div class="field"><label>Tipo<select name="work_type"><option value="manhwa">Manhwa</option><option value="manga">Mangá</option><option value="manhua">Manhua</option><option value="webtoon">Webtoon</option></select></label></div>
+<div class="field"><label>Estado da história<select name="story_status"><option value="ongoing">Em andamento</option><option value="completed">Finalizada</option><option value="hiatus">Hiato</option><option value="cancelled">Cancelada</option></select></label></div>
+<div class="field"><label>Ano<input name="release_year" type="number" min="1800" max="2200"></label></div>
+<div class="field"><label>Classificação indicativa<input name="age_rating" maxlength="40"></label></div>
+<div class="field"><label>Capítulos previstos<input name="expected_chapters" type="number" min="0" max="100000"></label></div>
+<div class="field"><label>Dias de atualização<input name="update_days" maxlength="100"></label></div>
+<div class="field"><label>Descensura<select name="decensor_type"><option value="none">Nenhuma</option><option value="official">Oficial</option><option value="arcana">Arcana</option></select></label></div>
+<div class="field"><label>Leitura<select name="reading_style"><option value="vertical">Vertical</option><option value="horizontal">Horizontal</option></select></label></div>
+<div class="field"><label>Espaçamento de imagens<input name="image_gap" type="number" min="0" max="500"></label></div>
+<div class="field"><label>SEO: título<input name="seo_title" maxlength="200"></label></div>
+</div>
+<div class="field"><label>Sinopse<textarea name="synopsis" maxlength="4000"></textarea></label></div>
+<div class="field"><label>SEO: descrição<textarea name="seo_description" maxlength="350"></textarea></label></div>
+<div class="row"><label class="check"><input type="checkbox" name="is_adult"> Conteúdo adulto</label><label class="check"><input type="checkbox" name="is_one_shot"> One-shot</label></div>
+<p><button type="submit">💾 Salvar alterações</button></p><p class="status" id="workMessage" role="status"></p></form>
+<div id="statusControls" hidden><h3>Situação editorial</h3><p class="warning">Alterar o estado no banco da Forja NÃO publica automaticamente a obra no site público. A sincronização do catálogo será uma etapa separada.</p><div class="row"><select id="publicationStatus" style="max-width:250px"><option value="draft">Rascunho</option><option value="upcoming">Revelação</option><option value="published">Publicada no banco</option></select><button id="saveStatus" type="button">Atualizar situação</button></div></div></section>
+<section class="panel"><h2>🏷️ Gêneros e tags</h2><div class="grid"><form id="genreForm"><label>Adicionar gênero<input name="name" required maxlength="80"></label><p><button type="submit">Cadastrar gênero</button></p><div id="genreList"></div></form><form id="tagForm"><label>Adicionar tag<input name="name" required maxlength="80"></label><p><button type="submit">Cadastrar tag</button></p><div id="tagList"></div></form></div><p class="status" id="taxMessage" role="status"></p></section>
+<section class="panel"><h2>📜 Capítulos — registros</h2><p class="warning">Esta etapa registra capítulos no banco, sem upload ZIP ou publicação de páginas. Não marque como publicado sem os arquivos.</p><form id="chapterForm"><div class="grid"><label>Obra<select name="work_id" id="chapterWork" required></select></label><label>Número do capítulo<input name="chapter_number" type="number" step="0.01" min="0" required></label><label>Título (opcional)<input name="title" maxlength="200"></label></div><p><button type="submit">Criar rascunho de capítulo</button></p></form><p class="status" id="chapterMessage" role="status"></p><div id="chapterList"></div></section>
+<section class="panel"><h2>📣 Publicações — rascunhos</h2><p class="warning">Os textos são salvos na Forja; não são enviados automaticamente ao Instagram ou Telegram.</p><form id="publicationForm"><div class="grid"><label>Título<input name="title" maxlength="200" required></label><label>Plataforma<select name="platform"><option value="instagram">Instagram</option><option value="telegram">Telegram</option><option value="both">Ambos</option></select></label></div><label>Legenda<textarea name="caption" maxlength="4000"></textarea></label><p><button type="submit">Salvar rascunho</button></p></form><p class="status" id="publicationMessage" role="status"></p><div id="publicationList"></div></section>
+<section class="panel"><h2>⚙️ Preferências editoriais</h2><p>Preferências armazenadas no banco. Ainda não alteram automaticamente o comportamento do site público.</p><form id="preferenceForm"><div class="grid"><label>Chave<select name="key"><option value="catalog.highlight">Destaque do catálogo</option><option value="catalog.note">Nota editorial</option><option value="social.default_hashtags">Hashtags padrão</option><option value="social.signature">Assinatura das postagens</option></select></label><label>Valor<input name="value" maxlength="1000" required></label></div><p><button type="submit">Salvar preferência</button></p></form><p class="status" id="preferenceMessage" role="status"></p><div id="preferenceList"></div></section>
+<section class="panel"><h2>🛡️ Auditoria real</h2><button id="loadAudit" type="button">Atualizar auditoria</button><div id="auditList"></div></section>
+</main>
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+let role = "", works = [], currentId = "";
+const fields = ["title","alternative_title","slug","synopsis","work_type","story_status","release_year","author","artist","scan_name","age_rating","is_adult","is_one_shot","decensor_type","expected_chapters","update_days","reading_style","image_gap","seo_title","seo_description"];
+const nums = new Set(["release_year","expected_chapters","image_gap"]);
+const bools = new Set(["is_adult","is_one_shot"]);
+async function api(path,method="GET",body){
+ const options={method,credentials:"same-origin",cache:"no-store"};
+ if(body!==undefined){options.headers={"Content-Type":"application/json"};options.body=JSON.stringify(body)}
+ const response=await fetch("/api/forja/"+path,options);
+ let data;try{data=await response.json()}catch{throw Error("Resposta inválida do servidor.")}
+ if(!response.ok||!data.ok)throw Error(data.error||"Operação não concluída.");return data;
+}
+function msg(id,text){$(id).textContent=text}
+function el(tag,text){const node=document.createElement(tag);node.textContent=String(text??"");return node}
+function list(id,items,describe){const target=$(id);target.replaceChildren();if(!items.length){target.append(el("p","Nenhum registro."));return}for(const item of items){const card=el("div",describe(item));card.className="item";target.append(card)}}
+async function loadWorks(){const data=await api("works");works=data.works||[];const a=$("workSelect"),b=$("chapterWork");a.replaceChildren(new Option("Selecione uma obra",""));b.replaceChildren(new Option("Selecione uma obra",""));for(const work of works){a.add(new Option(work.title,work.id));b.add(new Option(work.title,work.id))}if(currentId&&works.some(w=>w.id===currentId)){a.value=currentId;await chooseWork(currentId)}}
+async function chooseWork(id){currentId=id;$("workForm").hidden=!id;$("statusControls").hidden=!id;if(!id)return;const data=await api("works/"+encodeURIComponent(id));const work=data.work;const form=$("workForm");for(const key of fields){const input=form.elements.namedItem(key);if(!input)continue;if(bools.has(key))input.checked=work[key]===1||work[key]===true;else input.value=work[key]??""}$("publicationStatus").value=work.publication_status||"draft";msg("workMessage","")}
+$("workSelect").addEventListener("change",async()=>{try{await chooseWork($("workSelect").value)}catch(e){msg("workMessage","⚠️ "+e.message)}});
+$("workForm").addEventListener("submit",async e=>{e.preventDefault();const form=e.currentTarget;const body={};for(const key of fields){const input=form.elements.namedItem(key);if(bools.has(key))body[key]=input.checked;else if(nums.has(key))body[key]=input.value===""?null:Number(input.value);else body[key]=input.value.trim()}try{await api("works/"+encodeURIComponent(currentId),"PATCH",body);msg("workMessage","✨ Obra salva com sucesso!");await loadWorks()}catch(err){msg("workMessage","⚠️ "+err.message)}});
+$("saveStatus").addEventListener("click",async()=>{if(!currentId)return;const status=$("publicationStatus").value;if(!confirm("Alterar situação editorial para '"+status+"'? Isso NÃO atualiza o site público automaticamente."))return;try{await api("works/"+encodeURIComponent(currentId)+"/status","POST",{publication_status:status});msg("workMessage","Situação editorial atualizada no banco.")}catch(e){msg("workMessage","⚠️ "+e.message)}});
+async function loadTax(){for(const [type,target] of [["genres","genreList"],["tags","tagList"]]){const data=await api(type);list(target,data.items||[],i=>i.name)}}
+for(const [formId,type] of [["genreForm","genres"],["tagForm","tags"]]){$(formId).addEventListener("submit",async e=>{e.preventDefault();try{await api(type,"POST",{name:e.currentTarget.elements.namedItem("name").value.trim()});e.currentTarget.reset();msg("taxMessage","✨ Cadastrado!");await loadTax()}catch(err){msg("taxMessage","⚠️ "+err.message)}})}
+async function loadChapters(){const data=await api("chapters");list("chapterList",data.chapters||[],c=>`${c.work_title} • Capítulo ${c.chapter_number} • ${c.status}`)}
+$("chapterForm").addEventListener("submit",async e=>{e.preventDefault();const f=e.currentTarget;try{await api("chapters","POST",{work_id:f.elements.namedItem("work_id").value,chapter_number:Number(f.elements.namedItem("chapter_number").value),title:f.elements.namedItem("title").value.trim()});f.reset();msg("chapterMessage","✨ Rascunho de capítulo criado.");await loadChapters()}catch(err){msg("chapterMessage","⚠️ "+err.message)}});
+async function loadPublications(){const data=await api("publications");list("publicationList",data.publications||[],p=>`${p.title} • ${p.platform} • ${p.status}`)}
+$("publicationForm").addEventListener("submit",async e=>{e.preventDefault();const f=e.currentTarget;try{await api("publications","POST",{title:f.elements.namedItem("title").value.trim(),caption:f.elements.namedItem("caption").value.trim(),platform:f.elements.namedItem("platform").value});f.reset();msg("publicationMessage","✨ Rascunho salvo.");await loadPublications()}catch(err){msg("publicationMessage","⚠️ "+err.message)}});
+async function loadPrefs(){const data=await api("preferences");list("preferenceList",data.preferences||[],p=>`${p.key}: ${p.value}`)}
+$("preferenceForm").addEventListener("submit",async e=>{e.preventDefault();const f=e.currentTarget;try{await api("preferences","PATCH",{key:f.elements.namedItem("key").value,value:f.elements.namedItem("value").value.trim()});msg("preferenceMessage","✨ Preferência salva.");await loadPrefs()}catch(err){msg("preferenceMessage","⚠️ "+err.message)}});
+async function loadAudit(){const data=await api("audit");list("auditList",data.logs||[],a=>`${a.created_at} • ${a.username||a.user_id} • ${a.action} • ${a.description||""}`)}
+$("loadAudit").addEventListener("click",()=>loadAudit().catch(e=>msg("globalStatus","⚠️ "+e.message)));
+async function refresh(){const calls=[loadWorks,loadTax,loadChapters,loadPublications,loadPrefs,loadAudit];const results=await Promise.allSettled(calls.map(f=>f()));const failed=results.filter(r=>r.status==="rejected");msg("globalStatus",failed.length?"⚠️ Alguns módulos não carregaram: "+failed.map(r=>r.reason?.message).join(" • "):"✨ Dados carregados.")}
+$("refresh").addEventListener("click",refresh);
+(async()=>{try{const session=await api("me");role=session.user.role;$("welcome").textContent=`Bem-vindo(a), ${session.user.name} • ${role}`;$("app").hidden=false;if(role==="moderator"){$("saveStatus").disabled=true;$("saveStatus").title="Apenas owner e admin";for(const id of ["genreForm","tagForm","preferenceForm"]){$(id).querySelectorAll("input,select,button").forEach(x=>x.disabled=true)}}await refresh();const queryId=new URLSearchParams(location.search).get("id");if(queryId&&works.some(w=>w.id===queryId)){$("workSelect").value=queryId;await chooseWork(queryId)}}catch(err){msg("globalStatus","⚠️ "+err.message);if(err.message.includes("autenticado"))location.href="/forja/index.html";else $("app").hidden=false}})();
+})();
+</script>
+</body></html>

@@ -663,7 +663,267 @@ window.addEventListener("pagehide", () => {
 });
 
 updateSeoPreview();
-</script>
 
-</body>
-</html>
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+const imageUrls = new Map();
+
+let loadedWorks = [];
+
+function setValue(id, value) {
+  const element = $(id);
+  if (element) {
+    element.value = value ?? "";
+  }
+}
+
+function setChecked(id, value) {
+  const element = $(id);
+  if (element) {
+    element.checked = value === true || value === 1;
+  }
+}
+
+function previewImage(inputId, previewId) {
+  const input = $(inputId);
+  const preview = $(previewId);
+
+  input.addEventListener("change", () => {
+    const previous = imageUrls.get(inputId);
+
+    if (previous) {
+      URL.revokeObjectURL(previous);
+      imageUrls.delete(inputId);
+    }
+
+    const file = input.files?.[0];
+
+    if (!file) {
+      preview.replaceChildren();
+      return;
+    }
+
+    const allowed = [
+      "image/png",
+      "image/jpeg",
+      "image/webp"
+    ];
+
+    if (!allowed.includes(file.type)) {
+      alert("Selecione uma imagem PNG, JPG ou WebP.");
+      input.value = "";
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    imageUrls.set(inputId, url);
+
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = "Prévia da imagem selecionada";
+
+    preview.replaceChildren(img);
+  });
+}
+
+previewImage("coverFile", "coverPreview");
+previewImage("bannerFile", "bannerPreview");
+
+const statusDescriptions = {
+  draft: {
+    title: "📝 Rascunho",
+    description:
+      "A obra está em preparação e ainda não aparece no catálogo público."
+  },
+  upcoming: {
+    title: "🔮 Revelação",
+    description:
+      "A obra está anunciada para a área de próximas obras."
+  },
+  published: {
+    title: "✨ Publicada",
+    description:
+      "A obra está liberada para aparecer no catálogo público."
+  }
+};
+
+function updateStatusPreview() {
+  const selected =
+    statusDescriptions[$("publicationStatus").value] ||
+    statusDescriptions.draft;
+
+  $("statusTitle").textContent = selected.title;
+  $("statusDescription").textContent = selected.description;
+}
+
+$("publicationStatus").addEventListener(
+  "change",
+  updateStatusPreview
+);
+
+function updateSeoPreview() {
+  const title =
+    $("seoTitle").value.trim() ||
+    $("title").value.trim();
+
+  $("seoPreviewTitle").textContent =
+    title ? title + " | Arcana Scan" :
+    "Título da obra | Arcana Scan";
+
+  $("seoPreviewDescription").textContent =
+    $("seoDescription").value.trim() ||
+    $("synopsis").value.trim() ||
+    "A descrição da obra aparecerá aqui.";
+}
+
+[
+  "title",
+  "synopsis",
+  "seoTitle",
+  "seoDescription"
+].forEach(id => {
+  $(id).addEventListener("input", updateSeoPreview);
+});
+
+function fillWork(work) {
+  setValue("title", work.title);
+  setValue("alternativeTitle", work.alternative_title);
+  setValue("author", work.author);
+  setValue("artist", work.artist);
+  setValue("workType", work.work_type || "manhwa");
+  setValue("storyStatus", work.story_status || "ongoing");
+  setValue("synopsis", work.synopsis);
+  setValue("releaseYear", work.release_year);
+  setValue("ageRating", work.age_rating);
+  setValue("readingStyle", work.reading_style || "vertical");
+  setValue("decensorType", work.decensor_type || "none");
+  setValue("updateDays", work.update_days);
+  setValue("seoTitle", work.seo_title);
+  setValue("seoDescription", work.seo_description);
+  setValue(
+    "publicationStatus",
+    work.publication_status || "draft"
+  );
+
+  setChecked("isAdult", work.is_adult);
+  setChecked("isOneShot", work.is_one_shot);
+
+  updateStatusPreview();
+  updateSeoPreview();
+}
+
+function showNotice(message) {
+  const notice = document.querySelector(".notice");
+
+  if (notice) {
+    notice.textContent = message;
+  }
+}
+
+async function loadWorks() {
+  const selector = $("workSelect");
+
+  try {
+    const sessionResponse = await fetch("/api/forja/me", {
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+
+    const session = await sessionResponse.json();
+
+    if (!sessionResponse.ok || !session.ok) {
+      throw new Error(
+        "Sessão não encontrada. Entre novamente na Forja."
+      );
+    }
+
+    if (!["owner", "admin", "moderator"].includes(
+      session.user?.role
+    )) {
+      throw new Error("Acesso não autorizado.");
+    }
+
+    const response = await fetch("/api/forja/works", {
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || "Não foi possível carregar as obras."
+      );
+    }
+
+    loadedWorks = data.works || [];
+
+    selector.replaceChildren();
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Selecione uma obra";
+    selector.append(placeholder);
+
+    for (const work of loadedWorks) {
+      const option = document.createElement("option");
+      option.value = work.id;
+      option.textContent = work.title;
+      selector.append(option);
+    }
+
+    selector.disabled = loadedWorks.length === 0;
+
+    if (loadedWorks.length === 0) {
+      showNotice(
+        "📚 Nenhuma obra cadastrada ainda. " +
+        "Cadastre uma obra na Biblioteca para começar."
+      );
+      return;
+    }
+
+    showNotice(
+      "🔮 Obras carregadas. Selecione uma obra para " +
+      "visualizar seus dados. O salvamento ainda não está ativo."
+    );
+
+    const requestedId =
+      new URLSearchParams(window.location.search).get("id");
+
+    const selectedWork = loadedWorks.find(
+      work => work.id === requestedId
+    );
+
+    if (selectedWork) {
+      selector.value = selectedWork.id;
+      fillWork(selectedWork);
+    }
+
+  } catch (error) {
+    selector.disabled = true;
+    showNotice("⚠️ " + error.message);
+  }
+}
+
+$("workSelect").addEventListener("change", () => {
+  const work = loadedWorks.find(
+    item => item.id === $("workSelect").value
+  );
+
+  if (work) {
+    fillWork(work);
+  }
+});
+
+window.addEventListener("pagehide", () => {
+  for (const url of imageUrls.values()) {
+    URL.revokeObjectURL(url);
+  }
+});
+
+updateStatusPreview();
+updateSeoPreview();
+loadWorks();
+</script>

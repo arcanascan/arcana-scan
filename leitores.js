@@ -112,9 +112,8 @@
       registerMessage.textContent = "⚠️ As senhas não coincidem.";
       return;
     }
-    if (password.length < 12) {
-      registerMessage.textContent = "⚠️ A senha precisa ter pelo menos 12 caracteres.";
-      return;
+    if (password.length < 8) {
+  registerMessage.textContent = "⚠️ A senha precisa ter pelo menos 8 caracteres.";
     }
     registerButton.disabled = true;
     registerButton.textContent = "Criando conta...";

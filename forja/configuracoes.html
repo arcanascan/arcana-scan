@@ -1,0 +1,489 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Configurações | Forja Arcana</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#100a1b;--sidebar:#1b102d;--panel:#211632;
+  --border:#49345f;--gold:#f7d78b;--purple:#aa7cf0;
+  --text:#f5edff;--muted:#c1afd2
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:radial-gradient(circle at top right,#29183e,var(--bg) 65%);
+  color:var(--text);
+  font:14px/1.55 Arial,Helvetica,sans-serif
+}
+a{color:var(--gold);text-decoration:none}
+button,input,select,textarea{font:inherit}
+.shell{display:grid;grid-template-columns:255px minmax(0,1fr);min-height:100vh}
+.sidebar{
+  background:var(--sidebar);border-right:1px solid var(--border);
+  padding:28px 18px
+}
+.brand{font:bold 23px Georgia,serif;color:var(--gold)}
+.brand-sub{
+  font-size:10px;letter-spacing:3px;
+  color:var(--purple);margin-top:8px
+}
+.sidebar nav{margin-top:42px}
+.sidebar nav a{
+  display:block;padding:13px 14px;border-radius:10px;
+  margin-bottom:6px;color:var(--muted)
+}
+.sidebar nav a.active{
+  background:#35234f;color:#fff;border:1px solid #5b407c
+}
+main{padding:35px;max-width:1500px;width:100%;margin:auto}
+.eyebrow{color:var(--gold);letter-spacing:2px;font-size:11px}
+h1,h2,h3{font-family:Georgia,serif}
+h1{font-size:38px;color:var(--gold);margin:5px 0 10px}
+h2{font-size:22px;color:var(--gold);margin:0 0 12px}
+h3{color:#e9d8ff}
+p,.muted{color:var(--muted)}
+.topbar{
+  display:flex;align-items:center;
+  justify-content:space-between;gap:15px
+}
+.pill{
+  border:1px solid var(--border);border-radius:30px;
+  padding:7px 13px;background:#281a3b;
+  color:var(--gold);font-size:12px
+}
+.notice{
+  margin:20px 0;padding:14px;
+  background:#2a1b3c;border:1px solid #5d4278;
+  border-radius:10px
+}
+.tabs{
+  display:flex;flex-wrap:wrap;gap:9px;
+  margin:25px 0
+}
+.tab{
+  padding:11px 16px;background:#241633;
+  border:1px solid var(--border);border-radius:10px;
+  color:var(--muted);cursor:pointer
+}
+.tab.active{
+  background:#5d398c;color:#fff;border-color:#aa7cf0
+}
+.panel{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:17px;padding:26px
+}
+.section{display:none}
+.section.active{display:block}
+.layout{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:20px
+}
+label{
+  display:block;margin:16px 0 7px;
+  color:#dec8f7;font-size:13px;font-weight:bold
+}
+input,select,textarea{
+  width:100%;padding:12px;background:#120b1f;
+  color:#fff;border:1px solid var(--border);border-radius:10px
+}
+input:focus,select:focus,textarea:focus{
+  outline:2px solid var(--purple)
+}
+textarea{min-height:110px;resize:vertical}
+button{
+  border:1px solid #9870cb;border-radius:10px;
+  padding:12px 15px;background:#7548b3;
+  color:#fff;font-weight:bold;cursor:pointer
+}
+button.secondary{background:#35244c}
+button:disabled{opacity:.48;cursor:not-allowed}
+.item{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:15px 0;border-bottom:1px solid var(--border)
+}
+.item:last-child{border-bottom:0}
+.item strong{display:block}
+.item small{color:var(--muted)}
+.tag{
+  display:inline-block;padding:4px 9px;
+  background:#3b2856;border-radius:20px;
+  color:#e8d6ff;font-size:11px
+}
+.check{
+  display:flex;align-items:center;gap:10px;margin:15px 0;
+  color:#e9d8ff
+}
+.check input{width:auto}
+.info{
+  padding:16px;background:#170f26;
+  border:1px solid var(--border);border-radius:12px;
+  color:var(--muted);margin-top:18px
+}
+footer{margin-top:35px;color:var(--muted);font-size:12px}
+@media(max-width:1000px){.layout{grid-template-columns:1fr}}
+@media(max-width:750px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{padding:18px}
+  .sidebar nav{
+    display:flex;flex-wrap:wrap;gap:7px;margin-top:15px
+  }
+  .sidebar nav a{margin:0}
+  main{padding:20px}
+  h1{font-size:30px}
+}
+@media(max-width:500px){
+  .topbar{align-items:flex-start;flex-direction:column}
+  .panel{padding:18px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">⚒️ FORJA ARCANA</div>
+    <div class="brand-sub">ADMINISTRAÇÃO</div>
+    <nav aria-label="Navegação da Forja">
+      <a href="/forja/painel.html">🏰 Visão Geral</a>
+      <a href="/forja/obras.html">📚 Obras</a>
+      <a href="/forja/capitulos.html">📖 Capítulos</a>
+      <a href="/forja/publicacoes.html">🎨 Publicações</a>
+      <a href="/forja/equipe.html">👥 Equipe</a>
+      <a href="/forja/auditoria.html">📜 Auditoria</a>
+      <a href="/forja/configuracoes.html" class="active">⚙️ Configurações</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">FORJA ARCANA / ADMINISTRAÇÃO</div>
+        <h1>Configurações da Forja</h1>
+        <p>Organize as categorias e preferências da Arcana Scan.</p>
+      </div>
+      <span class="pill">⚙️ Interface em preparação</span>
+    </div>
+
+    <div class="notice">
+      🔮 Esta tela é visual. As alterações não serão salvas
+      até conectarmos as configurações ao banco de dados.
+      A administração de gêneros e tags ficará reservada aos administradores.
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Categorias de configurações">
+      <button class="tab active" type="button" data-tab="genres"
+              role="tab" aria-selected="true">📚 Gêneros</button>
+      <button class="tab" type="button" data-tab="tags"
+              role="tab" aria-selected="false">🏷️ Tags</button>
+      <button class="tab" type="button" data-tab="catalog"
+              role="tab" aria-selected="false">🔮 Catálogo</button>
+      <button class="tab" type="button" data-tab="social"
+              role="tab" aria-selected="false">🎨 Publicações</button>
+      <button class="tab" type="button" data-tab="security"
+              role="tab" aria-selected="false">🛡️ Segurança</button>
+    </div>
+
+    <section id="genres" class="section active">
+      <div class="layout">
+        <div class="panel">
+          <h2>📚 Gerenciar gêneros</h2>
+          <p>Cadastre e organize os gêneros disponíveis para as obras.</p>
+
+          <label for="genreName">Nome do gênero</label>
+          <input id="genreName" placeholder="Ex.: Fantasia">
+
+          <label for="genreSlug">Identificador</label>
+          <input id="genreSlug" placeholder="Ex.: fantasia">
+
+          <label for="genreDescription">Descrição</label>
+          <textarea id="genreDescription"
+                    placeholder="Descrição opcional do gênero..."></textarea>
+
+          <button type="button" disabled>✨ Adicionar gênero</button>
+        </div>
+
+        <div class="panel">
+          <h2>📜 Gêneros cadastrados</h2>
+          <p>A lista será carregada do banco na integração.</p>
+
+          <div class="info">
+            Nenhum gênero foi consultado nesta interface.
+            Os gêneros existentes no site não serão alterados.
+          </div>
+
+          <div class="item">
+            <div>
+              <strong>🔮 Catálogo de gêneros</strong>
+              <small>Fonte: banco de dados</small>
+            </div>
+            <span class="tag">Pendente</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tags" class="section">
+      <div class="layout">
+        <div class="panel">
+          <h2>🏷️ Gerenciar tags</h2>
+          <p>Crie marcadores para organizar as características das obras.</p>
+
+          <label for="tagName">Nome da tag</label>
+          <input id="tagName" placeholder="Ex.: Protagonista feminina">
+
+          <label for="tagSlug">Identificador</label>
+          <input id="tagSlug" placeholder="Ex.: protagonista-feminina">
+
+          <label for="tagDescription">Descrição</label>
+          <textarea id="tagDescription"
+                    placeholder="Descrição opcional da tag..."></textarea>
+
+          <button type="button" disabled>✨ Adicionar tag</button>
+        </div>
+
+        <div class="panel">
+          <h2>📜 Tags cadastradas</h2>
+          <p>Os marcadores disponíveis aparecerão aqui.</p>
+
+          <div class="info">
+            Os moderadores poderão selecionar tags existentes
+            para as obras, mas não criar ou excluir tags.
+          </div>
+
+          <div class="item">
+            <div>
+              <strong>🏷️ Biblioteca de tags</strong>
+              <small>Fonte: banco de dados</small>
+            </div>
+            <span class="tag">Pendente</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="catalog" class="section">
+      <div class="panel">
+        <h2>🔮 Preferências do catálogo</h2>
+        <p>Definições que serão aplicadas ao gerenciamento das obras.</p>
+
+        <div class="layout">
+          <div>
+            <label for="defaultWorkType">Tipo de obra padrão</label>
+            <select id="defaultWorkType">
+              <option value="manhwa">Manhwa</option>
+              <option value="manga">Mangá</option>
+              <option value="manhua">Manhua</option>
+              <option value="webtoon">Webtoon</option>
+            </select>
+
+            <label for="defaultReading">Leitura padrão</label>
+            <select id="defaultReading">
+              <option value="vertical">Vertical</option>
+              <option value="horizontal">Horizontal</option>
+            </select>
+
+            <label for="defaultPublication">Situação inicial</label>
+            <select id="defaultPublication">
+              <option value="draft">Rascunho</option>
+              <option value="upcoming">Revelação</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="defaultScan">Scan responsável padrão</label>
+            <input id="defaultScan" value="Arcana Scan">
+
+            <label for="defaultRating">Classificação etária padrão</label>
+            <select id="defaultRating">
+              <option value="">Não definida</option>
+              <option value="livre">Livre</option>
+              <option value="10">10+</option>
+              <option value="12">12+</option>
+              <option value="14">14+</option>
+              <option value="16">16+</option>
+              <option value="18">18+</option>
+            </select>
+
+            <label class="check">
+              <input type="checkbox" checked>
+              Exigir revisão antes de publicar capítulos
+            </label>
+
+            <label class="check">
+              <input type="checkbox" checked>
+              Impedir substituição automática de capítulos
+            </label>
+          </div>
+        </div>
+
+        <button type="button" disabled>⚙️ Salvar preferências</button>
+      </div>
+    </section>
+
+    <section id="social" class="section">
+      <div class="layout">
+        <div class="panel">
+          <h2>🎨 Preferências de publicações</h2>
+          <p>Organize o padrão de comunicação da Arcana Scan.</p>
+
+          <label for="defaultPlatform">Plataforma padrão</label>
+          <select id="defaultPlatform">
+            <option value="instagram">Instagram</option>
+            <option value="telegram">Telegram</option>
+            <option value="both">Instagram e Telegram</option>
+          </select>
+
+          <label for="defaultHashtags">Hashtags institucionais</label>
+          <textarea id="defaultHashtags">#ArcanaScan #Manhwa #Manga #Webtoon</textarea>
+
+          <label class="check">
+            <input type="checkbox" checked>
+            Preparar hashtags relacionadas à obra
+          </label>
+
+          <label class="check">
+            <input type="checkbox" checked>
+            Exigir aprovação para anúncios gerais
+          </label>
+
+          <button type="button" disabled>🎨 Salvar preferências</button>
+        </div>
+
+        <div class="panel">
+          <h2>✨ Modelos de anúncio</h2>
+          <p>Os layouts personalizados serão gerenciados pelo Ateliê.</p>
+
+          <div class="item">
+            <div>
+              <strong>🌟 Lançamento</strong>
+              <small>Apresentação de nova obra</small>
+            </div>
+            <span class="tag">Previsto</span>
+          </div>
+
+          <div class="item">
+            <div>
+              <strong>📖 Atualização</strong>
+              <small>Novos capítulos</small>
+            </div>
+            <span class="tag">Previsto</span>
+          </div>
+
+          <div class="item">
+            <div>
+              <strong>🌙 Finalização</strong>
+              <small>Conclusão de obra</small>
+            </div>
+            <span class="tag">Previsto</span>
+          </div>
+
+          <div class="item">
+            <div>
+              <strong>👑 Lançamento + Finalização</strong>
+              <small>Anúncio combinado</small>
+            </div>
+            <span class="tag">Previsto</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="security" class="section">
+      <div class="layout">
+        <div class="panel">
+          <h2>🛡️ Segurança da Forja</h2>
+          <p>Diretrizes de acesso e proteção administrativa.</p>
+
+          <div class="item">
+            <div>
+              <strong>👑 Proprietário</strong>
+              <small>Gerencia contas, cargos e acessos</small>
+            </div>
+            <span class="tag">Owner</span>
+          </div>
+
+          <div class="item">
+            <div>
+              <strong>⚔️ Administrador</strong>
+              <small>Gerencia conteúdo, categorias e consulta auditoria</small>
+            </div>
+            <span class="tag">Admin</span>
+          </div>
+
+          <div class="item">
+            <div>
+              <strong>📖 Moderador</strong>
+              <small>Gerencia obras, capítulos e publicações individuais</small>
+            </div>
+            <span class="tag">Moderator</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>🔐 Proteções previstas</h2>
+
+          <label class="check">
+            <input type="checkbox" checked disabled>
+            Sessões autenticadas para operações administrativas
+          </label>
+
+          <label class="check">
+            <input type="checkbox" checked disabled>
+            Permissões verificadas no servidor
+          </label>
+
+          <label class="check">
+            <input type="checkbox" checked disabled>
+            Registro de alterações administrativas
+          </label>
+
+          <label class="check">
+            <input type="checkbox" checked disabled>
+            Bloqueio de exclusões permanentes para moderadores
+          </label>
+
+          <div class="info">
+            Essas opções representam requisitos de segurança.
+            O funcionamento efetivo dependerá das verificações
+            implementadas nas APIs.
+          </div>
+
+          <a href="/forja/equipe.html">👥 Ir para o Conselho da Equipe</a>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      🔮 FORJA ARCANA · Configurações · Interface visual
+    </footer>
+  </main>
+</div>
+
+<script>
+"use strict";
+
+const tabs = document.querySelectorAll(".tab");
+const sections = document.querySelectorAll(".section");
+
+tabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    const target = tab.dataset.tab;
+
+    tabs.forEach(item => {
+      const selected = item === tab;
+      item.classList.toggle("active", selected);
+      item.setAttribute("aria-selected", String(selected));
+    });
+
+    sections.forEach(section => {
+      section.classList.toggle("active", section.id === target);
+    });
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,433 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Conselho da Equipe | Forja Arcana</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg:#100a1b;
+  --panel:#201432;
+  --border:#49345f;
+  --gold:#f7d78b;
+  --purple:#a979f0;
+  --text:#f3eafb;
+  --muted:#c0afd0;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  background:radial-gradient(circle at top,#251537,var(--bg) 65%);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+  line-height:1.5;
+}
+header {
+  border-bottom:1px solid var(--border);
+  background:#170f26;
+  padding:18px 5%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+}
+.brand {
+  font-family:Georgia,serif;
+  font-size:23px;
+  font-weight:bold;
+  color:var(--gold);
+}
+a { color:var(--gold); text-decoration:none; }
+main { max-width:1100px; margin:35px auto; padding:0 20px; }
+.eyebrow {
+  color:var(--purple);
+  font-size:12px;
+  font-weight:bold;
+  letter-spacing:3px;
+}
+h1 {
+  font-family:Georgia,serif;
+  color:var(--gold);
+  font-size:38px;
+  margin:8px 0;
+}
+h2 { font-family:Georgia,serif; color:var(--gold); }
+p { color:var(--muted); }
+.layout {
+  display:grid;
+  grid-template-columns:360px minmax(0,1fr);
+  gap:22px;
+  align-items:start;
+  margin-top:28px;
+}
+.card {
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:25px;
+}
+label {
+  display:block;
+  margin:16px 0 6px;
+  font-size:13px;
+  font-weight:bold;
+  color:#d8c3f3;
+}
+input,select {
+  display:block;
+  width:100%;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#120b1f;
+  color:white;
+  padding:13px;
+  font:inherit;
+}
+input:focus,select:focus {
+  outline:2px solid var(--purple);
+}
+button {
+  cursor:pointer;
+  border:1px solid #8960bb;
+  border-radius:10px;
+  padding:12px 15px;
+  background:#7346b1;
+  color:white;
+  font-weight:bold;
+}
+button:hover { background:#8857c9; }
+button:disabled { opacity:.5; cursor:wait; }
+button.primary { width:100%; margin-top:22px; }
+button.secondary { background:#342248; }
+button.danger { background:#663044; border-color:#a45b75; }
+.actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:13px; }
+.actions button { font-size:12px; padding:9px 11px; }
+.notice {
+  padding:14px;
+  margin:18px 0;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#261a39;
+  color:#e7d6ff;
+}
+.notice.error { border-color:#bc6383; color:#ffb8ca; }
+.notice.success { border-color:#4c9a7c; color:#b4f4d6; }
+.person {
+  padding:18px 0;
+  border-bottom:1px solid var(--border);
+}
+.person:last-child { border-bottom:0; }
+.person strong { font-size:17px; }
+.meta { font-size:13px; color:var(--muted); overflow-wrap:anywhere; }
+.tag {
+  display:inline-block;
+  margin:8px 6px 8px 0;
+  padding:4px 9px;
+  border-radius:30px;
+  background:#3b2856;
+  font-size:12px;
+}
+.tag.off { background:#623347; }
+small { color:var(--muted); }
+[hidden] { display:none!important; }
+@media(max-width:780px) {
+  .layout { grid-template-columns:1fr; }
+  h1 { font-size:30px; }
+  header { flex-wrap:wrap; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">⚒️ FORJA ARCANA</div>
+  <a href="/forja/painel.html">← Voltar ao Salão de Comando</a>
+</header>
+
+<main>
+  <div class="eyebrow">ADMINISTRAÇÃO PRINCIPAL</div>
+  <h1>👑 Conselho da Equipe</h1>
+  <p>Cadastre e gerencie os guardiões autorizados da Arcana Scan.</p>
+
+  <div id="message" class="notice">Verificando sua sessão...</div>
+
+  <div id="content" class="layout" hidden>
+
+    <section class="card">
+      <h2>✨ Novo integrante</h2>
+      <p>Somente a administração principal pode criar contas.</p>
+
+      <form id="createForm">
+        <label for="name">Nome do integrante</label>
+        <input id="name" name="name" maxlength="120"
+               placeholder="Nome de exibição" required>
+
+        <label for="username">Nome de usuário</label>
+        <input id="username" name="username"
+               minlength="3" maxlength="32"
+               pattern="[a-zA-Z0-9_]+"
+               placeholder="exemplo_usuario" required>
+
+        <label for="email">E-mail</label>
+        <input id="email" name="email" type="email"
+               maxlength="254" autocomplete="off" required>
+
+        <label for="password">Senha inicial</label>
+        <input id="password" name="password" type="password"
+               minlength="12" maxlength="128"
+               autocomplete="new-password" required>
+        <small>Mínimo de 12 caracteres. Não reutilize senhas.</small>
+
+        <label for="role">Cargo</label>
+        <select id="role" name="role" required>
+          <option value="moderator">Moderador</option>
+          <option value="admin">Administrador</option>
+        </select>
+
+        <button id="createButton" class="primary" type="submit">
+          ✨ Cadastrar integrante
+        </button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>🔮 Guardiões cadastrados</h2>
+      <p>Consulte contas, altere cargos e controle acessos.</p>
+
+      <button id="refreshButton" class="secondary" type="button">
+        ↻ Atualizar lista
+      </button>
+
+      <div id="users"></div>
+    </section>
+
+  </div>
+</main>
+
+<script>
+"use strict";
+
+const API = "/api/forja/users";
+const message = document.getElementById("message");
+const content = document.getElementById("content");
+const usersElement = document.getElementById("users");
+const form = document.getElementById("createForm");
+
+function showMessage(text, kind = "") {
+  message.textContent = text;
+  message.className = "notice" + (kind ? " " + kind : "");
+}
+
+async function apiRequest(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    credentials: "same-origin",
+    cache: "no-store",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("Resposta inesperada do servidor.");
+  }
+
+  if (!response.ok || !data.ok) {
+    throw new Error(data.error || "Operação não realizada.");
+  }
+
+  return data;
+}
+
+function element(tag, text, className) {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;
+  if (className) node.className = className;
+  return node;
+}
+
+function makeButton(label, className, handler) {
+  const button = element("button", label, className);
+  button.type = "button";
+  button.addEventListener("click", handler);
+  return button;
+}
+
+async function changeUser(user, changes) {
+  const action = changes.status === "disabled"
+    ? "desativar esta conta"
+    : changes.status === "active"
+    ? "reativar esta conta"
+    : "alterar o cargo desta conta";
+
+  if (!confirm("Deseja realmente " + action + "?")) return;
+
+  try {
+    showMessage("Salvando alteração...");
+    await apiRequest(API + "/" + encodeURIComponent(user.id), {
+      method: "PATCH",
+      body: JSON.stringify(changes)
+    });
+    showMessage("Conta atualizada com sucesso!", "success");
+    await loadUsers();
+  } catch (error) {
+    showMessage(error.message, "error");
+  }
+}
+
+function renderUsers(users) {
+  usersElement.replaceChildren();
+
+  if (!users.length) {
+    usersElement.append(element("p", "Nenhuma conta encontrada."));
+    return;
+  }
+
+  for (const user of users) {
+    const person = element("div", undefined, "person");
+    person.append(element("strong", user.name));
+    person.append(element(
+      "div",
+      "@" + user.username + " • " + user.email,
+      "meta"
+    ));
+
+    const roleNames = {
+      owner: "👑 Administração principal",
+      admin: "🛡️ Administrador",
+      moderator: "⚒️ Moderador"
+    };
+
+    person.append(element(
+      "span",
+      roleNames[user.role] || user.role,
+      "tag"
+    ));
+
+    person.append(element(
+      "span",
+      user.status === "active" ? "● Ativo" : "● Desativado",
+      user.status === "active" ? "tag" : "tag off"
+    ));
+
+    if (user.role !== "owner") {
+      const actions = element("div", undefined, "actions");
+
+      if (user.role === "moderator") {
+        actions.append(makeButton(
+          "Tornar administrador",
+          "secondary",
+          () => changeUser(user, { role: "admin" })
+        ));
+      } else {
+        actions.append(makeButton(
+          "Tornar moderador",
+          "secondary",
+          () => changeUser(user, { role: "moderator" })
+        ));
+      }
+
+      if (user.status === "active") {
+        actions.append(makeButton(
+          "Desativar acesso",
+          "danger",
+          () => changeUser(user, { status: "disabled" })
+        ));
+      } else {
+        actions.append(makeButton(
+          "Reativar acesso",
+          "secondary",
+          () => changeUser(user, { status: "active" })
+        ));
+      }
+
+      person.append(actions);
+    }
+
+    usersElement.append(person);
+  }
+}
+
+async function loadUsers() {
+  try {
+    const data = await apiRequest(API);
+    renderUsers(data.users || []);
+  } catch (error) {
+    showMessage(error.message, "error");
+  }
+}
+
+form.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const button = document.getElementById("createButton");
+  button.disabled = true;
+
+  const values = {
+    name: form.name.value.trim(),
+    username: form.username.value.trim(),
+    email: form.email.value.trim(),
+    password: form.password.value,
+    role: form.role.value
+  };
+
+  try {
+    showMessage("Criando conta...");
+    await apiRequest(API, {
+      method: "POST",
+      body: JSON.stringify(values)
+    });
+
+    form.reset();
+    showMessage("Integrante cadastrado com sucesso!", "success");
+    await loadUsers();
+  } catch (error) {
+    showMessage(error.message, "error");
+  } finally {
+    button.disabled = false;
+  }
+});
+
+document.getElementById("refreshButton")
+  .addEventListener("click", loadUsers);
+
+async function start() {
+  try {
+    const data = await apiRequest("/api/forja/me");
+
+    if (data.user?.role !== "owner") {
+      showMessage(
+        "Acesso reservado à administração principal.",
+        "error"
+      );
+      return;
+    }
+
+    content.hidden = false;
+    showMessage(
+      "Bem-vinda ao Conselho da Equipe, " +
+      data.user.name + "!",
+      "success"
+    );
+
+    await loadUsers();
+  } catch {
+    showMessage(
+      "Sessão não encontrada. Entre novamente pelo Portal da Forja.",
+      "error"
+    );
+  }
+}
+
+start();
+</script>
+
+</body>
+</html>

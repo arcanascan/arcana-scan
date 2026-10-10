@@ -69,102 +69,32 @@ if (sideMenu) {
 
 /* GRANDE ACERVO — NYX À ESQUERDA */
 
-const archiveWorks = [
-    ["Grimório de Cinzas", 286],
-    ["Ecos do Abismo", 268],
-    ["Coroa de Espinhos", 340],
-    ["Jardim do Eclipse", 275],
-    ["Estrelas Caídas", 225],
-    ["Noite Sagrada", 295],
-    ["Lua Partida", 255],
-    ["Sombras do Rei", 220],
-    ["Entre Mundos", 245],
-    ["Votos de Sangue", 335]
-];
+const archiveWorks = [];
 
 
 /* OBRAS MAIS LIDAS — COBY À DIREITA */
 
-const popularWorks = [
-    ["Sombras do Rei", 220],
-    ["Sangue & Ferro", 28],
-    ["Feitiço Oculto", 290],
-    ["Entre Mundos", 245],
-    ["Noite Sagrada", 295],
-    ["Lua Partida", 255],
-    ["Ecos do Abismo", 268],
-    ["Votos de Sangue", 335],
-    ["Estrelas Caídas", 225],
-    ["Coroa de Espinhos", 340]
-];
+const popularWorks = [];
 
 
 /* RELÍQUIAS EM DESTAQUE — LUCIEN À ESQUERDA */
 
-const relicWorks = [
-    ["Canção de Vidro", 272],
-    ["O Jardim Morto", 330],
-    ["Lua Escarlate", 350],
-    ["O Último Oráculo", 280],
-    ["O Reino Submerso", 215],
-    ["Entre Espinhos", 320],
-    ["Eco de Prata", 250],
-    ["A Última Chama", 15],
-    ["Silêncio Carmesim", 340],
-    ["Entre Ruínas", 265]
-];
+const relicWorks = [];
 
 
 /* CONTINUAR MERGULHANDO */
 
-const continueWorks = [
-    ["A Torre da Neblina", "Capítulo 34", 80, 275],
-    ["Prisma Negro", "Capítulo 18", 45, 290],
-    ["Votos de Sangue", "Capítulo 07", 63, 335],
-    ["Lua Partida", "Capítulo 16", 26, 255]
-];
+const continueWorks = [];
 
 
 /* HOSPEDAGENS — OBRAS DE OUTRAS SCANS */
 
-const hostingWorks = [
-    ["Fever", "Scan Convidada", 340],
-    ["Don't Say...", "Scan Convidada", 55],
-    ["Angel Kiss", "Scan Convidada", 278],
-    ["Overrun", "Scan Convidada", 22],
-    ["Jackpot", "Scan Convidada", 220],
-    ["Shoot My Shot", "Scan Convidada", 345]
-];
+const hostingWorks = [];
 
 
 /* ATUALIZAÇÕES — DATAS NÃO APARECEM NA TELA */
 
-const updates = [
-    { daysAgo: 0, order: 1, title: "Estrelas Caídas", chapter: "Capítulo 02", hue: 225 },
-    { daysAgo: 0, order: 2, title: "Lâmina Prateada", chapter: "Capítulo 14", hue: 260 },
-    { daysAgo: 0, order: 3, title: "Jardim do Eclipse", chapter: "Capítulo 28", hue: 275 },
-    { daysAgo: 0, order: 4, title: "Entre Mundos", chapter: "Capítulo 09", hue: 245 },
-    { daysAgo: 0, order: 5, title: "Votos de Sangue", chapter: "Capítulo 08", hue: 335 },
-    { daysAgo: 0, order: 6, title: "Prisma Negro", chapter: "Capítulo 19", hue: 290 },
-
-    { daysAgo: 1, order: 1, title: "Grimório de Cinzas", chapter: "Capítulo 43", hue: 286 },
-    { daysAgo: 1, order: 2, title: "Ecos do Abismo", chapter: "Capítulo 13", hue: 268 },
-    { daysAgo: 1, order: 3, title: "Coroa de Espinhos", chapter: "Capítulo 90", hue: 340 },
-    { daysAgo: 1, order: 4, title: "Sombras do Rei", chapter: "Capítulo 34", hue: 220 },
-
-    { daysAgo: 2, order: 1, title: "Noite Sagrada", chapter: "Capítulo 52", hue: 295 },
-    { daysAgo: 2, order: 2, title: "Lua Partida", chapter: "Capítulo 17", hue: 255 },
-
-    { daysAgo: 3, order: 1, title: "A Flor de Aço", chapter: "Capítulo 21", hue: 350 },
-    { daysAgo: 3, order: 2, title: "O Último Acorde", chapter: "Capítulo 17", hue: 310 },
-
-    { daysAgo: 4, order: 1, title: "Feitiço Oculto", chapter: "Capítulo 37", hue: 290 },
-
-    { daysAgo: 5, order: 1, title: "Entre Espinhos", chapter: "Capítulo 11", hue: 320 },
-
-    { daysAgo: 6, order: 1, title: "Eco de Prata", chapter: "Capítulo 24", hue: 250 },
-    { daysAgo: 6, order: 2, title: "O Jardim Morto", chapter: "Capítulo 08", hue: 330 }
-];
+const updates = [];
 
 
 /* FORJA — OBRAS ATUALIZADAS HOJE */

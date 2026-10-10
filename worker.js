@@ -1805,10 +1805,11 @@ async function workMediaApi(request, env, workId, kind) {
         }
         const mime=(request.headers.get("Content-Type")||"").split(";")[0].toLowerCase();
         if (!["image/jpeg","image/png","image/webp"].includes(mime)) return workError("Use JPG, PNG ou WebP.",415);
-        const size=Number(request.headers.get("Content-Length"));
-        if (!Number.isSafeInteger(size) || size<12 || size>MAX_WORK_IMAGE_BYTES) return workError("Imagem deve ter até 8 MB.",413);
+        const lengthHeader=request.headers.get("Content-Length");
+        const size=lengthHeader===null?null:Number(lengthHeader);
+        if (size!==null && (!Number.isSafeInteger(size) || size<12 || size>MAX_WORK_IMAGE_BYTES)) return workError("Imagem deve ter até 8 MB.",413);
         const body=await request.arrayBuffer();
-        if (body.byteLength!==size || body.byteLength>MAX_WORK_IMAGE_BYTES) return workError("Tamanho de imagem inválido.",413);
+        if (body.byteLength<12 || (size!==null && body.byteLength!==size) || body.byteLength>MAX_WORK_IMAGE_BYTES) return workError("Tamanho de imagem inválido.",413);
         const bytes=new Uint8Array(body);
         if (!validImageSignature(bytes,mime)) return workError("Arquivo de imagem inválido.",415);
         const extension={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"}[mime];
@@ -1820,10 +1821,10 @@ async function workMediaApi(request, env, workId, kind) {
                   VALUES(?,?,?,?,?,?) ON CONFLICT(work_id,kind) DO UPDATE SET
                   r2_key=excluded.r2_key,content_type=excluded.content_type,
                   byte_size=excluded.byte_size,updated_by=excluded.updated_by,updated_at=CURRENT_TIMESTAMP`)
-                  .bind(workId,kind,key,mime,size,session.user_id),
+                  .bind(workId,kind,key,mime,body.byteLength,session.user_id),
                 env.DB.prepare(`INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details)
                   VALUES(?,?,?,?,?,?)`).bind(session.user_id,"work.media.update","work",workId,
-                  "Imagem da obra atualizada.",JSON.stringify({kind,bytes:size}))
+                  "Imagem da obra atualizada.",JSON.stringify({kind,bytes:body.byteLength}))
             ]);
         } catch(e) {await env.MEDIA.delete(key).catch(()=>{});throw e;}
         if (existing?.r2_key && existing.r2_key!==key) {
@@ -1889,9 +1890,176 @@ async function workTaxonomyApi(request,env,workId) {
     }
 }
 
+
+// ================================================================
+// CATÁLOGO PÚBLICO + LEITOR + PÁGINAS DE CAPÍTULOS NO R2
+// Rotas públicas só consultam obras e capítulos publicados.
+// ================================================================
+const ARCANA_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ARCANA_PAGE_MAX = 8 * 1024 * 1024;
+function arcanaMediaHeaders(type, visibility="public") {
+    return {"Content-Type":type,"Content-Disposition":"inline",
+        "X-Content-Type-Options":"nosniff", "Cache-Control":"no-store"};
+}
+async function arcanaPublicCatalog(request,env,route,slug,chapterId,kind,number) {
+    if(request.method!=="GET" && request.method!=="HEAD") return workError("Método não permitido.",405);
+    if(!env.DB) return workError("Catálogo indisponível.",503);
+    try {
+        if(route==="list") {
+            const upcoming=new URL(request.url).searchParams.get("status")==="upcoming";
+            const status=upcoming?"upcoming":"published";
+            const result=await env.DB.prepare(`SELECT w.id,w.title,w.slug,w.synopsis,w.work_type,w.story_status,
+                w.age_rating,w.is_adult,w.author,w.artist,w.updated_at,
+                EXISTS(SELECT 1 FROM forja_work_images i WHERE i.work_id=w.id AND i.kind='cover') AS has_cover,
+                (SELECT COUNT(*) FROM forja_chapters c WHERE c.work_id=w.id AND c.publication_status='published') AS chapter_count
+                FROM forja_works w WHERE w.publication_status=? ORDER BY w.updated_at DESC,w.id DESC LIMIT 100`).bind(status).all();
+            return json({ok:true,works:(result.results||[]).map(w=>({...w,cover_url:w.has_cover?`/api/catalog/media/works/${w.id}/cover`:null}))});
+        }
+        if(route==="image") {
+            if(!env.MEDIA || !ARCANA_UUID.test(slug) || !["cover","banner","background"].includes(kind)) return workError("Imagem indisponível.",404);
+            const row=await env.DB.prepare(`SELECT i.r2_key,i.content_type FROM forja_work_images i
+                JOIN forja_works w ON w.id=i.work_id WHERE i.work_id=? AND i.kind=?
+                AND w.publication_status IN ('published','upcoming') LIMIT 1`).bind(slug,kind).first();
+            if(!row) return workError("Imagem indisponível.",404);
+            const obj=await env.MEDIA.get(row.r2_key);if(!obj)return workError("Imagem indisponível.",404);
+            return new Response(request.method==="HEAD"?null:obj.body,{headers:arcanaMediaHeaders(row.content_type)});
+        }
+        if(route==="page") {
+            if(!env.MEDIA || !ARCANA_UUID.test(chapterId) || !Number.isSafeInteger(number)||number<1||number>500) return workError("Página indisponível.",404);
+            const row=await env.DB.prepare(`SELECT p.r2_key,p.content_type FROM arcana_chapter_page_files p
+                JOIN forja_chapters c ON c.id=p.chapter_id JOIN forja_works w ON w.id=c.work_id
+                WHERE p.chapter_id=? AND p.page_number=? AND c.publication_status='published'
+                AND w.publication_status='published' LIMIT 1`).bind(chapterId,number).first();
+            if(!row)return workError("Página indisponível.",404);
+            const obj=await env.MEDIA.get(row.r2_key);if(!obj)return workError("Página indisponível.",404);
+            return new Response(request.method==="HEAD"?null:obj.body,{headers:arcanaMediaHeaders(row.content_type)});
+        }
+        if(!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)||slug.length>80)return workError("Obra não encontrada.",404);
+        const w=await env.DB.prepare(`SELECT id,title,alternative_title,slug,synopsis,work_type,story_status,
+            release_year,author,artist,scan_name,age_rating,is_adult,is_one_shot,decensor_type,
+            reading_style,image_gap,publication_status,updated_at FROM forja_works
+            WHERE slug=? AND publication_status IN ('published','upcoming') LIMIT 1`).bind(slug).first();
+        if(!w)return workError("Obra não encontrada.",404);
+        if(route==="chapter" && w.publication_status!=="published")return workError("Capítulo não encontrado.",404);
+        if(route==="detail") {
+            const [ch,images,genres,tags]=await Promise.all([
+                env.DB.prepare(`SELECT id,chapter_number,chapter_title,page_count,published_at FROM forja_chapters
+                    WHERE work_id=? AND publication_status='published' ORDER BY CAST(chapter_number AS REAL) DESC,id DESC LIMIT 300`).bind(w.id).all(),
+                env.DB.prepare(`SELECT kind FROM forja_work_images WHERE work_id=?`).bind(w.id).all(),
+                env.DB.prepare(`SELECT g.name FROM forja_genres g JOIN forja_work_genres wg ON wg.genre_id=g.id WHERE wg.work_id=? ORDER BY g.name`).bind(w.id).all(),
+                env.DB.prepare(`SELECT t.name FROM forja_tags t JOIN forja_work_tags wt ON wt.tag_id=t.id WHERE wt.work_id=? ORDER BY t.name`).bind(w.id).all()
+            ]);
+            const kinds=(images.results||[]).map(x=>x.kind);
+            return json({ok:true,work:{...w,images:Object.fromEntries(kinds.map(k=>[k,`/api/catalog/media/works/${w.id}/${k}`]))},
+                chapters:w.publication_status==="published"?(ch.results||[]):[],genres:(genres.results||[]).map(x=>x.name),tags:(tags.results||[]).map(x=>x.name)});
+        }
+        if(route==="chapter") {
+            if(!ARCANA_UUID.test(chapterId))return workError("Capítulo não encontrado.",404);
+            const c=await env.DB.prepare(`SELECT id,chapter_number,chapter_title,page_count FROM forja_chapters
+                WHERE id=? AND work_id=? AND publication_status='published' LIMIT 1`).bind(chapterId,w.id).first();
+            if(!c)return workError("Capítulo não encontrado.",404);
+            const pages=await env.DB.prepare(`SELECT page_number FROM arcana_chapter_page_files
+                WHERE chapter_id=? ORDER BY page_number ASC LIMIT 500`).bind(c.id).all();
+            return json({ok:true,work:{id:w.id,title:w.title,slug:w.slug,reading_style:w.reading_style,image_gap:w.image_gap},
+                chapter:c,pages:(pages.results||[]).map(p=>({number:p.page_number,url:`/api/catalog/media/chapters/${c.id}/${p.page_number}`}))});
+        }
+        return workError("Rota não encontrada.",404);
+    }catch(e){console.error("Public catalog error",e instanceof Error?e.name:"Unknown");return workError("Catálogo temporariamente indisponível.",500)}
+}
+
+async function arcanaChapterAdmin(request,env,chapterId,action,pageNumber) {
+    if(!env.DB || !env.MEDIA)return workError("Armazenamento indisponível.",503);
+    if(!ARCANA_UUID.test(chapterId))return workError("Capítulo inválido.",400);
+    if(!["GET","PUT","DELETE","POST"].includes(request.method))return workError("Método não permitido.",405);
+    if(request.method!=="GET"&&!isSameOrigin(request))return workError("Origem não autorizada.",403);
+    try {
+        const user=await findSession(request,env);
+        if(!user)return workError("Não autenticado.",401);
+        if(!["owner","admin","moderator"].includes(user.role))return workError("Acesso negado.",403);
+        const chapter=await env.DB.prepare(`SELECT c.id,c.work_id,c.chapter_number,c.chapter_title,c.publication_status,
+            c.page_count,w.title AS work_title FROM forja_chapters c JOIN forja_works w ON w.id=c.work_id
+            WHERE c.id=? LIMIT 1`).bind(chapterId).first();
+        if(!chapter)return workError("Capítulo não encontrado.",404);
+        if(action==="detail"&&request.method==="GET"){
+            const rows=await env.DB.prepare(`SELECT page_number,byte_size,content_type FROM arcana_chapter_page_files
+                WHERE chapter_id=? ORDER BY page_number LIMIT 500`).bind(chapterId).all();
+            return json({ok:true,chapter,pages:rows.results||[]});
+        }
+        if(action==="status"&&request.method==="POST"){
+            if(!["owner","admin"].includes(user.role))return workError("Somente a administração pode publicar.",403);
+            const body=await readJsonBody(request);if(!body.ok)return workError(body.error,body.status);
+            if(Object.keys(body.body).length!==1||!["draft","published"].includes(body.body.publication_status))return workError("Situação inválida.");
+            const status=body.body.publication_status;
+            const total=await env.DB.prepare(`SELECT COUNT(*) AS n FROM arcana_chapter_page_files WHERE chapter_id=?`).bind(chapterId).first();
+            if(status==="published" && Number(total?.n)<1)return workError("Envie pelo menos uma página antes de publicar.",400);
+            await env.DB.batch([
+                env.DB.prepare(`UPDATE forja_chapters SET publication_status=?,published_at=CASE WHEN ?='published' THEN CURRENT_TIMESTAMP ELSE NULL END,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(status,status,user.user_id,chapterId),
+                env.DB.prepare(`INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details) VALUES(?,?,?,?,?,?)`).bind(user.user_id,"chapter.status","chapter",chapterId,"Situação do capítulo alterada.",JSON.stringify({status}))
+            ]);
+            return json({ok:true,message:"Situação atualizada.",status});
+        }
+        if(action==="page"&&Number.isSafeInteger(pageNumber)&&pageNumber>=1&&pageNumber<=500){
+            const old=await env.DB.prepare(`SELECT r2_key FROM arcana_chapter_page_files WHERE chapter_id=? AND page_number=?`).bind(chapterId,pageNumber).first();
+            if(request.method==="DELETE"){
+                if(!old)return workError("Página não encontrada.",404);
+                const remaining=await env.DB.prepare(`SELECT COUNT(*) AS n FROM arcana_chapter_page_files WHERE chapter_id=?`).bind(chapterId).first();
+                if(chapter.publication_status==="published"&&Number(remaining.n)<=1)return workError("Retorne o capítulo a rascunho antes de remover a última página.",409);
+                await env.DB.batch([
+                    env.DB.prepare(`DELETE FROM arcana_chapter_page_files WHERE chapter_id=? AND page_number=?`).bind(chapterId,pageNumber),
+                    env.DB.prepare(`UPDATE forja_chapters SET page_count=(SELECT COUNT(*) FROM arcana_chapter_page_files WHERE chapter_id=?),updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(chapterId,user.user_id,chapterId),
+                    env.DB.prepare(`INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details) VALUES(?,?,?,?,?,?)`).bind(user.user_id,"chapter.page.delete","chapter",chapterId,"Página removida.",JSON.stringify({page:pageNumber}))
+                ]);
+                await env.MEDIA.delete(old.r2_key).catch(()=>{});
+                return json({ok:true,message:"Página removida."});
+            }
+            if(request.method!=="PUT")return workError("Método não permitido.",405);
+            const mime=(request.headers.get("Content-Type")||"").split(";")[0].toLowerCase();
+            if(!["image/png","image/jpeg","image/webp"].includes(mime))return workError("Use JPG, PNG ou WebP.",415);
+            const lengthHeader=request.headers.get("Content-Length");
+            const len=lengthHeader===null?null:Number(lengthHeader);
+            if(len!==null&&(!Number.isSafeInteger(len)||len<12||len>ARCANA_PAGE_MAX))return workError("Cada página deve ter até 8 MB.",413);
+            const buffer=await request.arrayBuffer();
+            if(buffer.byteLength<12||(len!==null&&buffer.byteLength!==len)||buffer.byteLength>ARCANA_PAGE_MAX||!validImageSignature(new Uint8Array(buffer),mime))return workError("Imagem inválida.",415);
+            const ext={"image/png":"png","image/jpeg":"jpg","image/webp":"webp"}[mime];
+            const key=`chapters/${chapterId}/pages/${pageNumber}/${crypto.randomUUID()}.${ext}`;
+            await env.MEDIA.put(key,buffer,{httpMetadata:{contentType:mime}});
+            try {
+                await env.DB.batch([
+                    env.DB.prepare(`INSERT INTO arcana_chapter_page_files(chapter_id,page_number,r2_key,content_type,byte_size,updated_by)
+                        VALUES(?,?,?,?,?,?) ON CONFLICT(chapter_id,page_number) DO UPDATE SET r2_key=excluded.r2_key,
+                        content_type=excluded.content_type,byte_size=excluded.byte_size,updated_by=excluded.updated_by,updated_at=CURRENT_TIMESTAMP`).bind(chapterId,pageNumber,key,mime,buffer.byteLength,user.user_id),
+                    env.DB.prepare(`UPDATE forja_chapters SET page_count=(SELECT COUNT(*) FROM arcana_chapter_page_files WHERE chapter_id=?),updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=?`).bind(chapterId,user.user_id,chapterId),
+                    env.DB.prepare(`INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details) VALUES(?,?,?,?,?,?)`).bind(user.user_id,"chapter.page.upload","chapter",chapterId,"Página enviada.",JSON.stringify({page:pageNumber,bytes:buffer.byteLength}))
+                ]);
+            }catch(e){await env.MEDIA.delete(key).catch(()=>{});throw e;}
+            if(old?.r2_key&&old.r2_key!==key)await env.MEDIA.delete(old.r2_key).catch(()=>{});
+            return json({ok:true,message:"Página enviada.",page:pageNumber});
+        }
+        return workError("Rota não encontrada.",404);
+    }catch(e){console.error("Chapter admin error",e instanceof Error?e.name:"Unknown");return workError("Não foi possível processar o capítulo.",500)}
+}
+
 export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
+
+        // Catálogo público (somente obras e capítulos publicados)
+        if(url.pathname==="/api/catalog/works")return arcanaPublicCatalog(request,env,"list");
+        let m=url.pathname.match(/^\/api\/catalog\/media\/works\/([0-9a-f-]{36})\/(cover|banner|background)$/i);
+        if(m)return arcanaPublicCatalog(request,env,"image",m[1],null,m[2]);
+        m=url.pathname.match(/^\/api\/catalog\/media\/chapters\/([0-9a-f-]{36})\/([1-9][0-9]{0,2})$/i);
+        if(m)return arcanaPublicCatalog(request,env,"page",null,m[1],null,Number(m[2]));
+        m=url.pathname.match(/^\/api\/catalog\/works\/([a-z0-9-]+)\/chapters\/([0-9a-f-]{36})$/i);
+        if(m)return arcanaPublicCatalog(request,env,"chapter",m[1],m[2]);
+        m=url.pathname.match(/^\/api\/catalog\/works\/([a-z0-9-]+)$/i);
+        if(m)return arcanaPublicCatalog(request,env,"detail",m[1]);
+        // Oficina de capítulos: arquivos e publicação autenticados
+        m=url.pathname.match(/^\/api\/forja\/chapters\/([0-9a-f-]{36})\/pages\/([1-9][0-9]{0,2})$/i);
+        if(m)return arcanaChapterAdmin(request,env,m[1],"page",Number(m[2]));
+        m=url.pathname.match(/^\/api\/forja\/chapters\/([0-9a-f-]{36})\/status$/i);
+        if(m)return arcanaChapterAdmin(request,env,m[1],"status");
+        m=url.pathname.match(/^\/api\/forja\/chapters\/([0-9a-f-]{36})$/i);
+        if(m)return arcanaChapterAdmin(request,env,m[1],"detail");
 
         // ======================================
         // STATUS DO SERVIDOR

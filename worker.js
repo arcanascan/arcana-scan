@@ -1650,45 +1650,212 @@ async function taxonomyApi(request, env, type) {
     }
 }
 
+
 async function chaptersApi(request, env) {
-    if (!["GET","POST"].includes(request.method)) return workError("Método não permitido.",405);
-    if (!env.DB) return workError("Serviço indisponível.",503);
-    if (request.method === "POST" && !isSameOrigin(request)) return workError("Origem não autorizada.",403);
+    if (!["GET", "POST"].includes(request.method)) {
+        return workError("Método não permitido.", 405);
+    }
+
+    if (!env.DB) {
+        return workError("Serviço indisponível.", 503);
+    }
+
+    if (
+        request.method === "POST" &&
+        !isSameOrigin(request)
+    ) {
+        return workError("Origem não autorizada.", 403);
+    }
+
     try {
-        const session = await findSession(request,env);
-        if (!session) return workError("Não autenticado.",401);
-        if (!["owner","admin","moderator"].includes(session.role)) return workError("Acesso negado.",403);
+        const session = await findSession(request, env);
+
+        if (!session) {
+            return workError("Não autenticado.", 401);
+        }
+
+        if (
+            !["owner", "admin", "moderator"].includes(
+                session.role
+            )
+        ) {
+            return workError("Acesso negado.", 403);
+        }
+
         if (request.method === "GET") {
             const rows = await env.DB.prepare(
-                `SELECT c.id,c.work_id,w.title AS work_title,c.chapter_number,c.title,
-                        c.status,c.created_at,c.updated_at
-                 FROM forja_chapters c JOIN forja_works w ON w.id=c.work_id
-                 ORDER BY c.created_at DESC,c.id DESC LIMIT 100`
+                `SELECT
+                    c.id,
+                    c.work_id,
+                    w.title AS work_title,
+                    c.chapter_number,
+                    c.chapter_title AS title,
+                    c.publication_status AS status,
+                    c.created_at,
+                    c.updated_at
+                 FROM forja_chapters c
+                 JOIN forja_works w
+                   ON w.id = c.work_id
+                 ORDER BY c.created_at DESC, c.id DESC
+                 LIMIT 100`
             ).all();
-            return json({ok:true,chapters:rows.results||[]});
+
+            return json({
+                ok: true,
+                chapters: rows.results || []
+            });
         }
+
         const parsed = await readJsonBody(request);
-        if (!parsed.ok) return workError(parsed.error,parsed.status);
+
+        if (!parsed.ok) {
+            return workError(
+                parsed.error,
+                parsed.status
+            );
+        }
+
         const b = parsed.body;
-        if (Object.keys(b).some(k => !["work_id","chapter_number","title"].includes(k))) return workError("Campos inválidos.");
-        if (typeof b.work_id !== "string" || !/^[0-9a-f-]{36}$/i.test(b.work_id)) return workError("Obra inválida.");
-        if (typeof b.chapter_number !== "number" || !Number.isFinite(b.chapter_number) || b.chapter_number < 0 || b.chapter_number > 100000) return workError("Número inválido.");
-        const title = cleanOptionalText(b.title,200);
-        if (title === undefined) return workError("Título inválido.");
-        const work = await env.DB.prepare(`SELECT id FROM forja_works WHERE id=?`).bind(b.work_id).first();
-        if (!work) return workError("Obra não encontrada.",404);
+
+        if (
+            Object.keys(b).some(
+                key => ![
+                    "work_id",
+                    "chapter_number",
+                    "title"
+                ].includes(key)
+            )
+        ) {
+            return workError("Campos inválidos.");
+        }
+
+        if (
+            typeof b.work_id !== "string" ||
+            !/^[0-9a-f-]{36}$/i.test(b.work_id)
+        ) {
+            return workError("Obra inválida.");
+        }
+
+        if (
+            typeof b.chapter_number !== "number" ||
+            !Number.isFinite(b.chapter_number) ||
+            b.chapter_number < 0 ||
+            b.chapter_number > 100000
+        ) {
+            return workError("Número inválido.");
+        }
+
+        const chapterNumber = String(
+            b.chapter_number
+        );
+
+        const suppliedTitle = cleanOptionalText(
+            b.title,
+            200
+        );
+
+        if (suppliedTitle === undefined) {
+            return workError("Título inválido.");
+        }
+
+        const chapterTitle =
+            suppliedTitle ||
+            `Capítulo ${chapterNumber}`;
+
+        const work = await env.DB.prepare(
+            `SELECT id
+             FROM forja_works
+             WHERE id = ?
+             LIMIT 1`
+        ).bind(b.work_id).first();
+
+        if (!work) {
+            return workError(
+                "Obra não encontrada.",
+                404
+            );
+        }
+
         const id = crypto.randomUUID();
+
         await env.DB.batch([
-            env.DB.prepare(`INSERT INTO forja_chapters(id,work_id,chapter_number,title,created_by) VALUES(?,?,?,?,?)`)
-                .bind(id,b.work_id,b.chapter_number,title,session.user_id),
-            env.DB.prepare(`INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details) VALUES(?,?,?,?,?,?)`)
-                .bind(session.user_id,"chapter.create","chapter",id,"Capítulo criado como rascunho.",JSON.stringify({work_id:b.work_id,chapter_number:b.chapter_number}))
+            env.DB.prepare(
+                `INSERT INTO forja_chapters (
+                    id,
+                    work_id,
+                    chapter_number,
+                    chapter_title,
+                    publication_status,
+                    created_by,
+                    updated_by
+                ) VALUES (?, ?, ?, ?, 'draft', ?, ?)`
+            ).bind(
+                id,
+                b.work_id,
+                chapterNumber,
+                chapterTitle,
+                session.user_id,
+                session.user_id
+            ),
+
+            env.DB.prepare(
+                `INSERT INTO forja_audit_logs (
+                    user_id,
+                    action,
+                    entity_type,
+                    entity_id,
+                    description,
+                    details
+                ) VALUES (?, ?, ?, ?, ?, ?)`
+            ).bind(
+                session.user_id,
+                "chapter.create",
+                "chapter",
+                id,
+                "Capítulo criado como rascunho.",
+                JSON.stringify({
+                    work_id: b.work_id,
+                    chapter_number: chapterNumber
+                })
+            )
         ]);
-        return json({ok:true,chapter:{id,work_id:b.work_id,chapter_number:b.chapter_number,status:"draft"}},201);
+
+        return json({
+            ok: true,
+            chapter: {
+                id,
+                work_id: b.work_id,
+                chapter_number: chapterNumber,
+                title: chapterTitle,
+                status: "draft"
+            }
+        }, 201);
+
     } catch (error) {
-        if (/UNIQUE constraint failed/i.test(String(error?.message||""))) return workError("Este capítulo já está cadastrado para a obra.",409);
-        console.error("Chapters failed:",error instanceof Error?error.name:"Unknown");
-        return workError("Não foi possível processar o capítulo.",500);
+        const message = String(
+            error instanceof Error
+                ? error.message
+                : ""
+        );
+
+        if (/UNIQUE constraint failed/i.test(message)) {
+            return workError(
+                "Este capítulo já está cadastrado para a obra.",
+                409
+            );
+        }
+
+        console.error(
+            "Chapters failed:",
+            error instanceof Error
+                ? error.name
+                : "Unknown"
+        );
+
+        return workError(
+            "Não foi possível processar o capítulo.",
+            500
+        );
     }
 }
 

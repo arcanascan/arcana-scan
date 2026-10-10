@@ -1,4 +1,3 @@
-
 "use strict";
 
 // ==========================================
@@ -1783,6 +1782,56 @@ function validImageSignature(bytes, mime) {
     return false;
 }
 
+// Dados editoriais adicionais do cadastro inspirado no WP Manga.
+// Esta rota não concede permissão de publicar obras nem modifica autenticação.
+async function workExtrasApi(request,env,workId){
+    if(!["GET","PUT"].includes(request.method))return workError("Método não permitido.",405);
+    if(!env.DB)return workError("Banco de dados indisponível.",503);
+    if(request.method==="PUT"&&!isSameOrigin(request))return workError("Origem não autorizada.",403);
+    try{
+        const session=await findSession(request,env);
+        if(!session)return workError("Não autenticado.",401);
+        if(!["owner","admin","moderator"].includes(session.role))return workError("Acesso negado.",403);
+        const work=await env.DB.prepare("SELECT id FROM forja_works WHERE id=? LIMIT 1").bind(workId).first();
+        if(!work)return workError("Obra não encontrada.",404);
+        if(request.method==="GET"){
+            const row=await env.DB.prepare("SELECT settings_json FROM forja_work_extras WHERE work_id=? LIMIT 1").bind(workId).first();
+            let settings={};
+            if(row?.settings_json){try{settings=JSON.parse(row.settings_json)}catch{settings={}}}
+            return json({ok:true,settings});
+        }
+        const parsed=await readJsonBody(request);
+        if(!parsed.ok)return workError(parsed.error,parsed.status);
+        const b=parsed.body;
+        const textLimits={global_chapter_message:3000,custom_badge:70,badge_url:500};
+        const choices={badge_type:["none","custom","new","hot","completed"],badge_target:["same","new"],summary_layout:["default","compact","expanded"],background_position:["center","top","bottom"],background_size:["cover","contain","auto"]};
+        const boolKeys=["allow_comments","telegram_post"];
+        const allowed=new Set([...Object.keys(textLimits),...Object.keys(choices),...boolKeys]);
+        if(!b||typeof b!=="object"||Array.isArray(b)||Object.keys(b).some(k=>!allowed.has(k)))return workError("Campos adicionais inválidos.");
+        const settings={};
+        for(const [k,max] of Object.entries(textLimits)){
+            const v=b[k]??"";
+            if(typeof v!=="string"||v.length>max||/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(v))return workError("Campo adicional inválido: "+k);
+            settings[k]=v.trim();
+        }
+        if(settings.badge_url){
+            try{const u=new URL(settings.badge_url);if(!["https:","http:"].includes(u.protocol))return workError("URL do selo inválida.")}catch{return workError("URL do selo inválida.")}
+        }
+        for(const [k,opts] of Object.entries(choices)){
+            const v=b[k]??opts[0];if(typeof v!=="string"||!opts.includes(v))return workError("Opção inválida: "+k);settings[k]=v;
+        }
+        for(const k of boolKeys){if(b[k]!==undefined&&typeof b[k]!=="boolean")return workError("Valor inválido: "+k);settings[k]=b[k]===true}
+        await env.DB.batch([
+            env.DB.prepare(`INSERT INTO forja_work_extras(work_id,settings_json,updated_by) VALUES(?,?,?)
+                ON CONFLICT(work_id) DO UPDATE SET settings_json=excluded.settings_json,updated_by=excluded.updated_by,updated_at=CURRENT_TIMESTAMP`)
+                .bind(workId,JSON.stringify(settings),session.user_id),
+            env.DB.prepare(`INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details) VALUES(?,?,?,?,?,?)`)
+                .bind(session.user_id,"work.extras.update","work",workId,"Campos editoriais adicionais atualizados.",JSON.stringify({keys:Object.keys(settings)}))
+        ]);
+        return json({ok:true,settings});
+    }catch(e){console.error("Work extras failed:",e instanceof Error?e.name:"Unknown");return workError("Falha ao consultar ou salvar campos editoriais. Verifique a migração D1.",500)}
+}
+
 async function workMediaApi(request, env, workId, kind) {
     if (!["GET","PUT"].includes(request.method)) return workError("Método não permitido.",405);
     if (!WORK_MEDIA_KINDS.has(kind) || !/^[0-9a-f-]{36}$/i.test(workId)) return workError("Endereço inválido.",400);
@@ -2127,6 +2176,8 @@ export default {
         // BIBLIOTECA DE OBRAS
         // ======================================
 
+        const extrasMatch=url.pathname.match(/^\/api\/forja\/works\/([0-9a-f-]{36})\/extras$/i);
+        if (extrasMatch) return workExtrasApi(request,env,extrasMatch[1]);
         // Mídias e classificação do cadastro completo (rotas específicas antes de works/:id)
         const mediaMatch=url.pathname.match(/^\/api\/forja\/works\/([0-9a-f-]{36})\/media\/(cover|banner|background)$/i);
         if (mediaMatch) return workMediaApi(request,env,mediaMatch[1],mediaMatch[2]);

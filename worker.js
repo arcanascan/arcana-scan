@@ -1389,11 +1389,9 @@ async function readerApi(request, env, action) {
             if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                 return readerError("E-mail inválido.");
             }
-          
             if (typeof password !== "string" || password.length < 8 || password.length > 128) {
                 return readerError("A senha deve ter de 8 a 128 caracteres.");
             }
-
             if (body.acceptTerms !== true) {
                 return readerError("É necessário aceitar os termos e a política de privacidade.");
             }
@@ -1650,212 +1648,44 @@ async function taxonomyApi(request, env, type) {
     }
 }
 
-
 async function chaptersApi(request, env) {
-    if (!["GET", "POST"].includes(request.method)) {
-        return workError("Método não permitido.", 405);
-    }
-
-    if (!env.DB) {
-        return workError("Serviço indisponível.", 503);
-    }
-
-    if (
-        request.method === "POST" &&
-        !isSameOrigin(request)
-    ) {
-        return workError("Origem não autorizada.", 403);
-    }
-
+    if (!["GET", "POST"].includes(request.method)) return workError("Método não permitido.", 405);
+    if (!env.DB) return workError("Serviço indisponível.", 503);
+    if (request.method === "POST" && !isSameOrigin(request)) return workError("Origem não autorizada.", 403);
     try {
         const session = await findSession(request, env);
-
-        if (!session) {
-            return workError("Não autenticado.", 401);
-        }
-
-        if (
-            !["owner", "admin", "moderator"].includes(
-                session.role
-            )
-        ) {
-            return workError("Acesso negado.", 403);
-        }
-
+        if (!session) return workError("Não autenticado.", 401);
+        if (!["owner", "admin", "moderator"].includes(session.role)) return workError("Acesso negado.", 403);
         if (request.method === "GET") {
-            const rows = await env.DB.prepare(
-                `SELECT
-                    c.id,
-                    c.work_id,
-                    w.title AS work_title,
-                    c.chapter_number,
-                    c.chapter_title AS title,
-                    c.publication_status AS status,
-                    c.created_at,
-                    c.updated_at
-                 FROM forja_chapters c
-                 JOIN forja_works w
-                   ON w.id = c.work_id
-                 ORDER BY c.created_at DESC, c.id DESC
-                 LIMIT 100`
-            ).all();
-
-            return json({
-                ok: true,
-                chapters: rows.results || []
-            });
+            const rows = await env.DB.prepare(`SELECT c.id,c.work_id,w.title AS work_title,
+                c.chapter_number,c.chapter_title AS title,c.publication_status AS status,
+                c.created_at,c.updated_at FROM forja_chapters c
+                JOIN forja_works w ON w.id=c.work_id
+                ORDER BY c.created_at DESC,c.id DESC LIMIT 100`).all();
+            return json({ok:true,chapters:rows.results||[]});
         }
-
         const parsed = await readJsonBody(request);
-
-        if (!parsed.ok) {
-            return workError(
-                parsed.error,
-                parsed.status
-            );
-        }
-
-        const b = parsed.body;
-
-        if (
-            Object.keys(b).some(
-                key => ![
-                    "work_id",
-                    "chapter_number",
-                    "title"
-                ].includes(key)
-            )
-        ) {
-            return workError("Campos inválidos.");
-        }
-
-        if (
-            typeof b.work_id !== "string" ||
-            !/^[0-9a-f-]{36}$/i.test(b.work_id)
-        ) {
-            return workError("Obra inválida.");
-        }
-
-        if (
-            typeof b.chapter_number !== "number" ||
-            !Number.isFinite(b.chapter_number) ||
-            b.chapter_number < 0 ||
-            b.chapter_number > 100000
-        ) {
-            return workError("Número inválido.");
-        }
-
-        const chapterNumber = String(
-            b.chapter_number
-        );
-
-        const suppliedTitle = cleanOptionalText(
-            b.title,
-            200
-        );
-
-        if (suppliedTitle === undefined) {
-            return workError("Título inválido.");
-        }
-
-        const chapterTitle =
-            suppliedTitle ||
-            `Capítulo ${chapterNumber}`;
-
-        const work = await env.DB.prepare(
-            `SELECT id
-             FROM forja_works
-             WHERE id = ?
-             LIMIT 1`
-        ).bind(b.work_id).first();
-
-        if (!work) {
-            return workError(
-                "Obra não encontrada.",
-                404
-            );
-        }
-
-        const id = crypto.randomUUID();
-
+        if (!parsed.ok) return workError(parsed.error,parsed.status);
+        const b=parsed.body;
+        if (Object.keys(b).some(k=>!["work_id","chapter_number","title"].includes(k))) return workError("Campos inválidos.");
+        if (typeof b.work_id!=="string" || !/^[0-9a-f-]{36}$/i.test(b.work_id)) return workError("Obra inválida.");
+        if (typeof b.chapter_number!=="number" || !Number.isFinite(b.chapter_number) || b.chapter_number<0 || b.chapter_number>100000) return workError("Número inválido.");
+        const number=String(b.chapter_number);
+        const title=cleanOptionalText(b.title,200);
+        if (title===undefined) return workError("Título inválido.");
+        const chapterTitle=title||`Capítulo ${number}`;
+        const work=await env.DB.prepare(`SELECT id FROM forja_works WHERE id=? LIMIT 1`).bind(b.work_id).first();
+        if (!work) return workError("Obra não encontrada.",404);
+        const id=crypto.randomUUID();
         await env.DB.batch([
-            env.DB.prepare(
-                `INSERT INTO forja_chapters (
-                    id,
-                    work_id,
-                    chapter_number,
-                    chapter_title,
-                    publication_status,
-                    created_by,
-                    updated_by
-                ) VALUES (?, ?, ?, ?, 'draft', ?, ?)`
-            ).bind(
-                id,
-                b.work_id,
-                chapterNumber,
-                chapterTitle,
-                session.user_id,
-                session.user_id
-            ),
-
-            env.DB.prepare(
-                `INSERT INTO forja_audit_logs (
-                    user_id,
-                    action,
-                    entity_type,
-                    entity_id,
-                    description,
-                    details
-                ) VALUES (?, ?, ?, ?, ?, ?)`
-            ).bind(
-                session.user_id,
-                "chapter.create",
-                "chapter",
-                id,
-                "Capítulo criado como rascunho.",
-                JSON.stringify({
-                    work_id: b.work_id,
-                    chapter_number: chapterNumber
-                })
-            )
+            env.DB.prepare(`INSERT INTO forja_chapters(id,work_id,chapter_number,chapter_title,publication_status,created_by,updated_by) VALUES(?,?,?,?,'draft',?,?)`).bind(id,b.work_id,number,chapterTitle,session.user_id,session.user_id),
+            env.DB.prepare(`INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details) VALUES(?,?,?,?,?,?)`).bind(session.user_id,"chapter.create","chapter",id,"Capítulo criado como rascunho.",JSON.stringify({work_id:b.work_id,chapter_number:number}))
         ]);
-
-        return json({
-            ok: true,
-            chapter: {
-                id,
-                work_id: b.work_id,
-                chapter_number: chapterNumber,
-                title: chapterTitle,
-                status: "draft"
-            }
-        }, 201);
-
-    } catch (error) {
-        const message = String(
-            error instanceof Error
-                ? error.message
-                : ""
-        );
-
-        if (/UNIQUE constraint failed/i.test(message)) {
-            return workError(
-                "Este capítulo já está cadastrado para a obra.",
-                409
-            );
-        }
-
-        console.error(
-            "Chapters failed:",
-            error instanceof Error
-                ? error.name
-                : "Unknown"
-        );
-
-        return workError(
-            "Não foi possível processar o capítulo.",
-            500
-        );
+        return json({ok:true,chapter:{id,work_id:b.work_id,chapter_number:number,title:chapterTitle,status:"draft"}},201);
+    } catch(error) {
+        if (/UNIQUE constraint failed/i.test(String(error?.message||""))) return workError("Este capítulo já está cadastrado para a obra.",409);
+        console.error("Chapters failed:",error instanceof Error?error.name:"Unknown");
+        return workError("Não foi possível processar o capítulo.",500);
     }
 }
 
@@ -1935,6 +1765,130 @@ async function preferencesApi(request, env) {
 // WORKER PRINCIPAL — ARCANA SCAN
 // ==========================================
 
+
+// ================================================================
+// FORJA — MÍDIAS DE OBRAS (R2 PRIVADO) E CLASSIFICAÇÃO
+// ================================================================
+const WORK_MEDIA_KINDS = new Set(["cover", "banner", "background"]);
+const MAX_WORK_IMAGE_BYTES = 8 * 1024 * 1024;
+
+function validImageSignature(bytes, mime) {
+    if (mime === "image/png") return bytes.length >= 8 &&
+        [137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v);
+    if (mime === "image/jpeg") return bytes.length >= 3 &&
+        bytes[0]===255 && bytes[1]===216 && bytes[2]===255;
+    if (mime === "image/webp") return bytes.length >= 12 &&
+        String.fromCharCode(...bytes.slice(0,4)) === "RIFF" &&
+        String.fromCharCode(...bytes.slice(8,12)) === "WEBP";
+    return false;
+}
+
+async function workMediaApi(request, env, workId, kind) {
+    if (!["GET","PUT"].includes(request.method)) return workError("Método não permitido.",405);
+    if (!WORK_MEDIA_KINDS.has(kind) || !/^[0-9a-f-]{36}$/i.test(workId)) return workError("Endereço inválido.",400);
+    if (!env.DB || !env.MEDIA) return workError("Armazenamento não configurado.",503);
+    if (request.method==="PUT" && !isSameOrigin(request)) return workError("Origem não autorizada.",403);
+    try {
+        const session=await findSession(request,env);
+        if (!session) return workError("Não autenticado.",401);
+        if (!["owner","admin","moderator"].includes(session.role)) return workError("Acesso negado.",403);
+        const work=await env.DB.prepare("SELECT id FROM forja_works WHERE id=? LIMIT 1").bind(workId).first();
+        if (!work) return workError("Obra não encontrada.",404);
+        const existing=await env.DB.prepare("SELECT r2_key,content_type FROM forja_work_images WHERE work_id=? AND kind=? LIMIT 1").bind(workId,kind).first();
+        if (request.method==="GET") {
+            if (!existing) return workError("Imagem não encontrada.",404);
+            const obj=await env.MEDIA.get(existing.r2_key);
+            if (!obj) return workError("Arquivo não encontrado.",404);
+            return new Response(obj.body,{headers:{"Content-Type":existing.content_type,
+                "Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff",
+                "Content-Disposition":"inline"}});
+        }
+        const mime=(request.headers.get("Content-Type")||"").split(";")[0].toLowerCase();
+        if (!["image/jpeg","image/png","image/webp"].includes(mime)) return workError("Use JPG, PNG ou WebP.",415);
+        const size=Number(request.headers.get("Content-Length"));
+        if (!Number.isSafeInteger(size) || size<12 || size>MAX_WORK_IMAGE_BYTES) return workError("Imagem deve ter até 8 MB.",413);
+        const body=await request.arrayBuffer();
+        if (body.byteLength!==size || body.byteLength>MAX_WORK_IMAGE_BYTES) return workError("Tamanho de imagem inválido.",413);
+        const bytes=new Uint8Array(body);
+        if (!validImageSignature(bytes,mime)) return workError("Arquivo de imagem inválido.",415);
+        const extension={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"}[mime];
+        const key=`works/${workId}/${kind}/${crypto.randomUUID()}.${extension}`;
+        await env.MEDIA.put(key,body,{httpMetadata:{contentType:mime}});
+        try {
+            await env.DB.batch([
+                env.DB.prepare(`INSERT INTO forja_work_images(work_id,kind,r2_key,content_type,byte_size,updated_by)
+                  VALUES(?,?,?,?,?,?) ON CONFLICT(work_id,kind) DO UPDATE SET
+                  r2_key=excluded.r2_key,content_type=excluded.content_type,
+                  byte_size=excluded.byte_size,updated_by=excluded.updated_by,updated_at=CURRENT_TIMESTAMP`)
+                  .bind(workId,kind,key,mime,size,session.user_id),
+                env.DB.prepare(`INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details)
+                  VALUES(?,?,?,?,?,?)`).bind(session.user_id,"work.media.update","work",workId,
+                  "Imagem da obra atualizada.",JSON.stringify({kind,bytes:size}))
+            ]);
+        } catch(e) {await env.MEDIA.delete(key).catch(()=>{});throw e;}
+        if (existing?.r2_key && existing.r2_key!==key) {
+            await env.MEDIA.delete(existing.r2_key).catch(()=>console.error("Old media cleanup failed"));
+        }
+        return json({ok:true,kind,message:"Imagem salva no R2."});
+    } catch(error) {
+        console.error("Work media failed:",error instanceof Error?error.name:"Unknown");
+        return workError("Não foi possível processar a imagem.",500);
+    }
+}
+
+async function workTaxonomyApi(request,env,workId) {
+    if (!["GET","PUT"].includes(request.method)) return workError("Método não permitido.",405);
+    if (!env.DB) return workError("Banco indisponível.",503);
+    if (!/^[0-9a-f-]{36}$/i.test(workId)) return workError("Obra inválida.",400);
+    if (request.method==="PUT" && !isSameOrigin(request)) return workError("Origem não autorizada.",403);
+    try {
+        const session=await findSession(request,env);
+        if (!session) return workError("Não autenticado.",401);
+        if (!["owner","admin","moderator"].includes(session.role)) return workError("Acesso negado.",403);
+        const work=await env.DB.prepare("SELECT id FROM forja_works WHERE id=? LIMIT 1").bind(workId).first();
+        if (!work) return workError("Obra não encontrada.",404);
+        if (request.method==="GET") {
+            const [genres,tags,images]=await Promise.all([
+                env.DB.prepare("SELECT genre_id AS id FROM forja_work_genres WHERE work_id=?").bind(workId).all(),
+                env.DB.prepare("SELECT tag_id AS id FROM forja_work_tags WHERE work_id=?").bind(workId).all(),
+                env.DB.prepare("SELECT kind FROM forja_work_images WHERE work_id=?").bind(workId).all()
+            ]);
+            return json({ok:true,genres:(genres.results||[]).map(x=>x.id),
+                tags:(tags.results||[]).map(x=>x.id),images:(images.results||[]).map(x=>x.kind)});
+        }
+        const parsed=await readJsonBody(request);
+        if (!parsed.ok) return workError(parsed.error,parsed.status);
+        const b=parsed.body;
+        if (Object.keys(b).some(k=>!["genres","tags"].includes(k)) ||
+            !Array.isArray(b.genres)||!Array.isArray(b.tags)) return workError("Seleção inválida.");
+        for(const ids of [b.genres,b.tags]) {
+            if(ids.length>50 || new Set(ids).size!==ids.length ||
+                ids.some(id=>typeof id!=="string" || !/^[0-9a-f-]{36}$/i.test(id))) return workError("Seleção inválida.");
+        }
+        // Verificar os IDs antes de executar a transação de substituição.
+        for(const [ids,table] of [[b.genres,"forja_genres"],[b.tags,"forja_tags"]]) {
+            if(ids.length) {
+                const placeholders=ids.map(()=>"?").join(",");
+                const result=await env.DB.prepare(`SELECT COUNT(*) AS total FROM ${table} WHERE id IN (${placeholders})`).bind(...ids).first();
+                if(Number(result?.total)!==ids.length) return workError("Há gêneros ou tags inexistentes.",400);
+            }
+        }
+        const queries=[
+            env.DB.prepare("DELETE FROM forja_work_genres WHERE work_id=?").bind(workId),
+            env.DB.prepare("DELETE FROM forja_work_tags WHERE work_id=?").bind(workId)
+        ];
+        for(const id of b.genres) queries.push(env.DB.prepare("INSERT INTO forja_work_genres(work_id,genre_id) VALUES(?,?)").bind(workId,id));
+        for(const id of b.tags) queries.push(env.DB.prepare("INSERT INTO forja_work_tags(work_id,tag_id) VALUES(?,?)").bind(workId,id));
+        queries.push(env.DB.prepare(`INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details) VALUES(?,?,?,?,?,?)`)
+            .bind(session.user_id,"work.taxonomy.update","work",workId,"Classificação da obra atualizada.",JSON.stringify({genre_count:b.genres.length,tag_count:b.tags.length})));
+        await env.DB.batch(queries);
+        return json({ok:true,message:"Gêneros e tags salvos."});
+    } catch(error) {
+        console.error("Work taxonomy failed:",error instanceof Error?error.name:"Unknown");
+        return workError("Não foi possível salvar a classificação.",500);
+    }
+}
+
 export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
@@ -2004,6 +1958,12 @@ export default {
         // ======================================
         // BIBLIOTECA DE OBRAS
         // ======================================
+
+        // Mídias e classificação do cadastro completo (rotas específicas antes de works/:id)
+        const mediaMatch=url.pathname.match(/^\/api\/forja\/works\/([0-9a-f-]{36})\/media\/(cover|banner|background)$/i);
+        if (mediaMatch) return workMediaApi(request,env,mediaMatch[1],mediaMatch[2]);
+        const taxMatch=url.pathname.match(/^\/api\/forja\/works\/([0-9a-f-]{36})\/taxonomy$/i);
+        if (taxMatch) return workTaxonomyApi(request,env,taxMatch[1]);
 
         if (url.pathname === "/api/forja/works") {
             return worksApi(request, env);

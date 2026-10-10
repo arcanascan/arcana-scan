@@ -1,0 +1,485 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Ateliê de Publicações | Forja Arcana</title>
+<style>
+:root {
+  color-scheme:dark;
+  --bg:#100a1b;
+  --sidebar:#1b102d;
+  --panel:#211632;
+  --panel2:#2d1d43;
+  --border:#49345f;
+  --gold:#f7d78b;
+  --purple:#aa7cf0;
+  --text:#f5edff;
+  --muted:#c1afd2;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:radial-gradient(circle at top right,#29183e,var(--bg) 65%);
+  color:var(--text);
+  font:14px/1.55 Arial,Helvetica,sans-serif
+}
+a{color:var(--gold);text-decoration:none}
+button,input,select,textarea{font:inherit}
+.shell{display:grid;grid-template-columns:255px minmax(0,1fr);min-height:100vh}
+.sidebar{
+  background:var(--sidebar);
+  border-right:1px solid var(--border);
+  padding:28px 18px
+}
+.brand{font:bold 23px Georgia,serif;color:var(--gold)}
+.brand-sub{font-size:10px;letter-spacing:3px;color:var(--purple);margin-top:8px}
+.sidebar nav{margin-top:42px}
+.sidebar nav a{
+  display:block;
+  padding:13px 14px;
+  border-radius:10px;
+  margin-bottom:6px;
+  color:var(--muted)
+}
+.sidebar nav a.active{
+  background:#35234f;
+  color:white;
+  border:1px solid #5b407c
+}
+main{padding:35px;max-width:1600px;width:100%;margin:auto}
+.eyebrow{color:var(--gold);letter-spacing:2px;font-size:11px}
+h1,h2,h3{font-family:Georgia,serif}
+h1{font-size:38px;color:var(--gold);margin:5px 0 10px}
+h2{font-size:22px;color:var(--gold);margin:0 0 12px}
+h3{color:#ead9ff}
+p,.muted{color:var(--muted)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.pill{
+  border:1px solid var(--border);
+  border-radius:30px;
+  padding:7px 13px;
+  background:#281a3b;
+  color:var(--gold);
+  font-size:12px
+}
+.notice{
+  margin:20px 0;
+  padding:14px;
+  background:#2a1b3c;
+  border:1px solid #5d4278;
+  border-radius:10px
+}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:25px 0}
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:17px;
+  padding:24px
+}
+.metric{font:bold 29px Georgia,serif;color:var(--gold)}
+.layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);
+  gap:20px;
+  align-items:start
+}
+label{
+  display:block;
+  margin:17px 0 7px;
+  color:#dec8f7;
+  font-size:13px;
+  font-weight:bold
+}
+input,select,textarea{
+  width:100%;
+  padding:12px;
+  background:#120b1f;
+  color:white;
+  border:1px solid var(--border);
+  border-radius:10px
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--purple)}
+textarea{resize:vertical;min-height:105px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.full{grid-column:1/-1}
+.checks{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0}
+.checks label{display:flex;align-items:center;gap:8px;margin:0}
+.checks input{width:auto}
+button{
+  border:1px solid #9870cb;
+  border-radius:10px;
+  padding:12px 15px;
+  background:#7548b3;
+  color:white;
+  font-weight:bold;
+  cursor:pointer
+}
+button.secondary{background:#35244c}
+button:disabled{opacity:.48;cursor:not-allowed}
+button.full-button{width:100%;margin-top:18px}
+.upload{
+  margin-top:17px;
+  padding:24px;
+  background:#170f26;
+  border:2px dashed #71519a;
+  border-radius:14px;
+  text-align:center
+}
+.upload-icon{font-size:35px}
+.upload strong{display:block;margin:8px 0;color:var(--gold)}
+.upload small{color:var(--muted)}
+.preview{
+  background:linear-gradient(145deg,#301d48,#170e27);
+  border:1px solid #6b4d89;
+  border-radius:16px;
+  overflow:hidden
+}
+.preview-head{
+  padding:18px;
+  border-bottom:1px solid #59406f;
+  color:var(--gold);
+  font-family:Georgia,serif;
+  font-size:21px;
+  text-align:center
+}
+.preview-image{
+  aspect-ratio:4/5;
+  max-height:390px;
+  background:
+    radial-gradient(circle at center,#4a2e68 0,transparent 60%),
+    linear-gradient(135deg,#211331,#3a2152);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:20px;
+  border-bottom:1px solid var(--border);
+  overflow:hidden
+}
+.preview-image img{max-width:100%;max-height:100%;object-fit:contain}
+.preview-image .rune{font-size:60px;color:var(--gold)}
+.preview-image strong{font:25px Georgia,serif;color:var(--gold)}
+.preview-caption{padding:20px;white-space:pre-wrap;overflow-wrap:anywhere}
+.tag{
+  display:inline-block;
+  padding:4px 9px;
+  background:#3b2856;
+  border-radius:20px;
+  color:#e8d6ff;
+  font-size:11px;
+  margin:8px 6px 0 0
+}
+.list-item{padding:16px 0;border-bottom:1px solid var(--border)}
+.list-item:last-child{border-bottom:0}
+.list-item strong{display:block}
+footer{margin-top:35px;color:var(--muted);font-size:12px}
+@media(max-width:1100px){.layout{grid-template-columns:1fr}}
+@media(max-width:750px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{padding:18px}
+  .sidebar nav{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}
+  .sidebar nav a{margin:0}
+  main{padding:20px}
+  .metrics{grid-template-columns:1fr}
+  h1{font-size:30px}
+}
+@media(max-width:500px){.fields{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">⚒️ FORJA ARCANA</div>
+    <div class="brand-sub">ADMINISTRAÇÃO</div>
+
+    <nav aria-label="Navegação da Forja">
+      <a href="/forja/painel.html">🏰 Visão Geral</a>
+      <a href="/forja/obras.html">📚 Obras</a>
+      <a href="/forja/capitulos.html">📖 Capítulos</a>
+      <a href="/forja/publicacoes.html" class="active">🎨 Publicações</a>
+      <a href="/forja/equipe.html">👥 Equipe</a>
+      <a href="/forja/auditoria.html">📜 Auditoria</a>
+      <a href="/forja/configuracoes.html">⚙️ Configurações</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">FORJA ARCANA / ATELIÊ</div>
+        <h1>Ateliê de Publicações</h1>
+        <p>Planeje anúncios, selecione artes e prepare a comunicação da Arcana Scan.</p>
+      </div>
+      <span class="pill">🔮 Interface em preparação</span>
+    </div>
+
+    <div class="notice">
+      🎨 Esta tela prepara visualmente os anúncios. O armazenamento das artes,
+      o agendamento e o envio às plataformas serão conectados posteriormente.
+      Nenhuma publicação será realizada nesta etapa.
+    </div>
+
+    <section class="metrics" aria-label="Indicadores">
+      <div class="card">
+        <div class="muted">Publicações planejadas</div>
+        <div class="metric">—</div>
+        <small class="muted">Aguardando integração</small>
+      </div>
+      <div class="card">
+        <div class="muted">Aguardando aprovação</div>
+        <div class="metric">—</div>
+        <small class="muted">Aguardando integração</small>
+      </div>
+      <div class="card">
+        <div class="muted">Publicações enviadas</div>
+        <div class="metric">—</div>
+        <small class="muted">Aguardando integração</small>
+      </div>
+    </section>
+
+    <div class="layout">
+      <section class="card">
+        <h2>✨ Preparar publicação</h2>
+        <p>Defina o tipo de anúncio, o conteúdo e as plataformas desejadas.</p>
+
+        <form id="publicationForm">
+          <div class="fields">
+            <div>
+              <label for="postType">Tipo de publicação</label>
+              <select id="postType">
+                <option value="launch">Lançamento</option>
+                <option value="update">Atualização</option>
+                <option value="finale">Finalização</option>
+                <option value="launch_finale">Lançamento + Finalização</option>
+                <option value="general">Anúncio geral</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="postScope">Abrangência</label>
+              <select id="postScope">
+                <option value="individual">Obra individual</option>
+                <option value="multiple">Várias obras</option>
+              </select>
+            </div>
+
+            <div class="full">
+              <label for="work">Obra(s) relacionadas</label>
+              <select id="work" disabled>
+                <option>Obras serão carregadas do catálogo</option>
+              </select>
+              <small class="muted">
+                Posts gerais com várias obras serão reservados aos administradores.
+              </small>
+            </div>
+
+            <div class="full">
+              <label for="postTitle">Título do anúncio</label>
+              <input id="postTitle" maxlength="150"
+                     placeholder="Ex.: Um novo destino foi revelado!">
+            </div>
+
+            <div class="full">
+              <label for="postCaption">Legenda</label>
+              <textarea id="postCaption" maxlength="3000"
+                        placeholder="Escreva a legenda que acompanhará a publicação..."></textarea>
+            </div>
+
+            <div>
+              <label for="postDate">Data planejada</label>
+              <input id="postDate" type="datetime-local">
+            </div>
+
+            <div>
+              <label for="postStatus">Etapa</label>
+              <select id="postStatus">
+                <option value="draft">Rascunho</option>
+                <option value="review">Aguardando aprovação</option>
+                <option value="scheduled">Planejada</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="checks">
+            <label>
+              <input id="instagram" type="checkbox" checked>
+              Instagram
+            </label>
+            <label>
+              <input id="telegram" type="checkbox">
+              Telegram
+            </label>
+            <label>
+              <input id="hashtags" type="checkbox" checked>
+              Preparar hashtags
+            </label>
+          </div>
+
+          <div class="upload">
+            <div class="upload-icon">🖼️</div>
+            <strong>Arte personalizada da publicação</strong>
+            <p>Selecione uma imagem exportada do Photoshop para visualizar a composição.</p>
+            <input id="artFile" type="file" accept="image/png,image/jpeg,image/webp">
+            <small>
+              A imagem selecionada será exibida somente neste navegador.
+              Ela não será enviada nem armazenada.
+            </small>
+          </div>
+
+          <button type="button" class="full-button" disabled>
+            🔮 Salvar publicação
+          </button>
+        </form>
+      </section>
+
+      <section>
+        <div class="card">
+          <h2>🎨 Prévia do anúncio</h2>
+          <p>Visualize a arte e o texto antes da futura publicação.</p>
+
+          <div class="preview">
+            <div id="previewTitle" class="preview-head">
+              ✨ NOVO LANÇAMENTO
+            </div>
+
+            <div id="previewImage" class="preview-image">
+              <div class="rune">✦</div>
+              <strong>ARCANA SCAN</strong>
+              <p>Seu universo de histórias começa aqui.</p>
+            </div>
+
+            <div id="previewCaption" class="preview-caption">
+              🔮 Uma nova história está chegando à Arcana Scan!
+            </div>
+          </div>
+
+          <div id="previewPlatforms">
+            <span class="tag">Instagram</span>
+          </div>
+
+          <h3>✨ Identidade Arcana</h3>
+          <p>
+            Os layouts personalizados poderão ser produzidos no Photoshop,
+            preservando runas, sigilos, tons de roxo e detalhes dourados.
+          </p>
+        </div>
+
+        <div class="card" style="margin-top:20px">
+          <h2>📜 Planejamento</h2>
+          <p>As publicações salvas aparecerão aqui quando conectarmos a API.</p>
+
+          <div class="list-item">
+            <strong>📝 Rascunhos</strong>
+            <span class="tag">Aguardando integração</span>
+          </div>
+          <div class="list-item">
+            <strong>🛡️ Aguardando aprovação</strong>
+            <span class="tag">Aguardando integração</span>
+          </div>
+          <div class="list-item">
+            <strong>✨ Planejadas</strong>
+            <span class="tag">Aguardando integração</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      🔮 FORJA ARCANA · Ateliê de Publicações · Interface visual
+    </footer>
+  </main>
+</div>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+let previewUrl = null;
+
+const postNames = {
+  launch: "✨ NOVO LANÇAMENTO",
+  update: "📖 ATUALIZAÇÃO",
+  finale: "🌙 FINALIZAÇÃO",
+  launch_finale: "👑 LANÇAMENTO + FINALIZAÇÃO",
+  general: "🔮 COMUNICADO ARCANA"
+};
+
+function updatePreview() {
+  const type = $("postType").value;
+  const title = $("postTitle").value.trim();
+  const caption = $("postCaption").value.trim();
+
+  $("previewTitle").textContent =
+    title || postNames[type] || "ARCANA SCAN";
+
+  $("previewCaption").textContent =
+    caption || "🔮 Uma nova história está chegando à Arcana Scan!";
+
+  const platforms = $("previewPlatforms");
+  platforms.replaceChildren();
+
+  if ($("instagram").checked) {
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = "Instagram";
+    platforms.append(tag);
+  }
+
+  if ($("telegram").checked) {
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = "Telegram";
+    platforms.append(tag);
+  }
+
+  if ($("hashtags").checked) {
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = "Hashtags previstas";
+    platforms.append(tag);
+  }
+}
+
+$("publicationForm").addEventListener("input", updatePreview);
+$("publicationForm").addEventListener("change", updatePreview);
+
+$("artFile").addEventListener("change", event => {
+  const file = event.target.files?.[0];
+  const container = $("previewImage");
+
+  if (previewUrl) {
+    URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+  }
+
+  if (!file) return;
+
+  if (!["image/png","image/jpeg","image/webp"].includes(file.type)) {
+    alert("Selecione uma imagem PNG, JPG ou WebP.");
+    event.target.value = "";
+    return;
+  }
+
+  previewUrl = URL.createObjectURL(file);
+
+  const img = document.createElement("img");
+  img.alt = "Prévia da arte selecionada";
+  img.src = previewUrl;
+
+  container.replaceChildren(img);
+});
+
+window.addEventListener("pagehide", () => {
+  if (previewUrl) URL.revokeObjectURL(previewUrl);
+});
+
+updatePreview();
+</script>
+
+</body>
+</html>

@@ -1389,9 +1389,11 @@ async function readerApi(request, env, action) {
             if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                 return readerError("E-mail inválido.");
             }
-            if (typeof password !== "string" || password.length < 12 || password.length > 128) {
-                return readerError("A senha deve ter de 12 a 128 caracteres.");
+          
+            if (typeof password !== "string" || password.length < 8 || password.length > 128) {
+                return readerError("A senha deve ter de 8 a 128 caracteres.");
             }
+
             if (body.acceptTerms !== true) {
                 return readerError("É necessário aceitar os termos e a política de privacidade.");
             }

@@ -1370,11 +1370,13 @@ export default {
             );
         }
 
-        // ======================================
+               // ======================================
         // ROTAS DESCONHECIDAS
         // ======================================
 
-             if (env.ASSETS) {
+        // Entrega os arquivos HTML, CSS, JS e imagens
+        // do site através do Cloudflare Assets.
+        if (env.ASSETS) {
             return env.ASSETS.fetch(request);
         }
 
@@ -1385,3 +1387,5 @@ export default {
             },
             503
         );
+    }
+};

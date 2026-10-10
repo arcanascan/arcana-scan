@@ -1,0 +1,434 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Registros Arcanos | Forja Arcana</title>
+
+<style>
+:root {
+  color-scheme:dark;
+  --bg:#100a1b;
+  --sidebar:#1b102d;
+  --panel:#211632;
+  --panel2:#2c1d40;
+  --border:#49345f;
+  --gold:#f7d78b;
+  --purple:#aa7cf0;
+  --text:#f5edff;
+  --muted:#c1afd2;
+  --green:#a9e7c7;
+  --red:#ffb7c8;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:radial-gradient(circle at top right,#29183e,var(--bg) 65%);
+  color:var(--text);
+  font:14px/1.55 Arial,Helvetica,sans-serif;
+}
+a{color:var(--gold);text-decoration:none}
+button,input,select{font:inherit}
+.shell{
+  display:grid;
+  grid-template-columns:255px minmax(0,1fr);
+  min-height:100vh;
+}
+.sidebar{
+  background:var(--sidebar);
+  border-right:1px solid var(--border);
+  padding:28px 18px;
+}
+.brand{
+  font:bold 23px Georgia,serif;
+  color:var(--gold);
+}
+.brand-sub{
+  font-size:10px;
+  letter-spacing:3px;
+  color:var(--purple);
+  margin-top:8px;
+}
+.sidebar nav{margin-top:42px}
+.sidebar nav a{
+  display:block;
+  padding:13px 14px;
+  border-radius:10px;
+  margin-bottom:6px;
+  color:var(--muted);
+}
+.sidebar nav a.active{
+  background:#35234f;
+  color:white;
+  border:1px solid #5b407c;
+}
+main{
+  padding:35px;
+  max-width:1550px;
+  width:100%;
+  margin:auto;
+}
+.eyebrow{
+  color:var(--gold);
+  letter-spacing:2px;
+  font-size:11px;
+}
+h1,h2,h3{font-family:Georgia,serif}
+h1{
+  font-size:38px;
+  color:var(--gold);
+  margin:5px 0 10px;
+}
+h2{
+  color:var(--gold);
+  font-size:22px;
+  margin:0 0 12px;
+}
+p,.muted{color:var(--muted)}
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+}
+.pill{
+  border:1px solid var(--border);
+  border-radius:30px;
+  padding:7px 13px;
+  color:var(--gold);
+  background:#281a3b;
+  font-size:12px;
+}
+.notice{
+  background:#2a1b3c;
+  border:1px solid #5d4278;
+  padding:14px;
+  border-radius:10px;
+  margin:20px 0;
+}
+.metrics{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+  margin:25px 0;
+}
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:17px;
+  padding:24px;
+}
+.metric{
+  font:bold 29px Georgia,serif;
+  color:var(--gold);
+}
+.filters{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr auto;
+  gap:12px;
+  align-items:end;
+}
+label{
+  display:block;
+  margin:0 0 7px;
+  color:#dec8f7;
+  font-size:13px;
+  font-weight:bold;
+}
+input,select{
+  width:100%;
+  padding:12px;
+  background:#120b1f;
+  color:white;
+  border:1px solid var(--border);
+  border-radius:10px;
+}
+input:focus,select:focus{
+  outline:2px solid var(--purple);
+}
+button{
+  border:1px solid #9870cb;
+  border-radius:10px;
+  padding:12px 15px;
+  background:#7548b3;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+button.secondary{background:#35244c}
+button:disabled{opacity:.48;cursor:not-allowed}
+.table-wrap{
+  width:100%;
+  overflow-x:auto;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:760px;
+}
+th,td{
+  text-align:left;
+  padding:15px 12px;
+  border-bottom:1px solid var(--border);
+  vertical-align:top;
+}
+th{
+  color:var(--gold);
+  font-size:12px;
+  letter-spacing:1px;
+}
+td{color:#eee2fb}
+.tag{
+  display:inline-block;
+  padding:4px 9px;
+  border-radius:20px;
+  background:#3b2856;
+  font-size:11px;
+}
+.tag.security{background:#54314b;color:#ffd3e0}
+.tag.work{background:#293e52;color:#cbeaff}
+.tag.user{background:#44375a;color:#ead5ff}
+.empty{
+  text-align:center;
+  padding:55px 20px;
+  color:var(--muted);
+}
+.empty-icon{font-size:43px;margin-bottom:12px}
+.bottom{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:20px;
+}
+footer{
+  margin-top:35px;
+  color:var(--muted);
+  font-size:12px;
+}
+@media(max-width:1000px){
+  .filters{grid-template-columns:1fr 1fr}
+}
+@media(max-width:750px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{padding:18px}
+  .sidebar nav{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+    margin-top:15px;
+  }
+  .sidebar nav a{margin:0}
+  main{padding:20px}
+  .metrics{grid-template-columns:1fr}
+  h1{font-size:30px}
+}
+@media(max-width:500px){
+  .filters{grid-template-columns:1fr}
+  .topbar{align-items:flex-start;flex-direction:column}
+}
+</style>
+</head>
+
+<body>
+<div class="shell">
+
+  <aside class="sidebar">
+    <div class="brand">⚒️ FORJA ARCANA</div>
+    <div class="brand-sub">ADMINISTRAÇÃO</div>
+
+    <nav aria-label="Navegação da Forja">
+      <a href="/forja/painel.html">🏰 Visão Geral</a>
+      <a href="/forja/obras.html">📚 Obras</a>
+      <a href="/forja/capitulos.html">📖 Capítulos</a>
+      <a href="/forja/publicacoes.html">🎨 Publicações</a>
+      <a href="/forja/equipe.html">👥 Equipe</a>
+      <a href="/forja/auditoria.html" class="active">📜 Auditoria</a>
+      <a href="/forja/configuracoes.html">⚙️ Configurações</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">FORJA ARCANA / REGISTROS</div>
+        <h1>Registros Arcanos</h1>
+        <p>Histórico de atividades administrativas e ações realizadas na Forja.</p>
+      </div>
+      <span class="pill">🛡️ Consulta administrativa</span>
+    </div>
+
+    <div class="notice">
+      📜 Esta é a interface visual da auditoria. Os registros reais serão
+      consultados no banco de dados após a integração da API.
+      Nenhuma informação de auditoria será inventada ou simulada.
+    </div>
+
+    <section class="metrics" aria-label="Indicadores">
+      <div class="card">
+        <div class="muted">Eventos registrados</div>
+        <div class="metric">—</div>
+        <small class="muted">Aguardando conexão</small>
+      </div>
+      <div class="card">
+        <div class="muted">Ações de equipe</div>
+        <div class="metric">—</div>
+        <small class="muted">Aguardando conexão</small>
+      </div>
+      <div class="card">
+        <div class="muted">Ações de segurança</div>
+        <div class="metric">—</div>
+        <small class="muted">Aguardando conexão</small>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>🔍 Consultar registros</h2>
+      <p>Os filtros serão aplicados aos registros reais após a integração.</p>
+
+      <div class="filters">
+        <div>
+          <label for="filterUser">Integrante</label>
+          <select id="filterUser" disabled>
+            <option>Todos os integrantes</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="filterType">Tipo de ação</label>
+          <select id="filterType" disabled>
+            <option>Todas as ações</option>
+            <option>Obras</option>
+            <option>Capítulos</option>
+            <option>Equipe</option>
+            <option>Publicações</option>
+            <option>Segurança</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="filterDate">Data</label>
+          <input id="filterDate" type="date" disabled>
+        </div>
+
+        <div>
+          <button type="button" disabled>
+            🔍 Filtrar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:20px">
+      <h2>📜 Livro de Registros</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data e hora</th>
+              <th>Integrante</th>
+              <th>Ação</th>
+              <th>Alvo</th>
+              <th>Detalhes</th>
+            </tr>
+          </thead>
+
+          <tbody id="auditRows">
+            <tr>
+              <td colspan="5">
+                <div class="empty">
+                  <div class="empty-icon">📜</div>
+                  <strong>Nenhum registro carregado</strong>
+                  <p>
+                    Os eventos reais aparecerão aqui quando
+                    conectarmos a auditoria ao banco D1.
+                  </p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="bottom">
+        <span class="muted">
+          Exibindo: — registros
+        </span>
+
+        <div>
+          <button type="button" class="secondary" disabled>
+            ← Anterior
+          </button>
+          <button type="button" class="secondary" disabled>
+            Próxima →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:20px">
+      <h2>🛡️ Política de Auditoria</h2>
+      <p>
+        Os registros administrativos serão utilizados para
+        identificar alterações e manter a responsabilidade
+        pelas ações realizadas na plataforma.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo de ação</th>
+              <th>Registro previsto</th>
+              <th>Quem poderá consultar</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>📚 Obras</td>
+              <td>Criação, edição e alteração de situação</td>
+              <td>Administradores</td>
+            </tr>
+            <tr>
+              <td>📖 Capítulos</td>
+              <td>Importação, revisão e publicação</td>
+              <td>Administradores</td>
+            </tr>
+            <tr>
+              <td>👥 Equipe</td>
+              <td>Criação de contas, alteração de cargos e bloqueios</td>
+              <td>Administradores</td>
+            </tr>
+            <tr>
+              <td>🎨 Publicações</td>
+              <td>Criação, edição e envio de anúncios</td>
+              <td>Administradores</td>
+            </tr>
+            <tr>
+              <td>🔐 Segurança</td>
+              <td>Eventos de autenticação e proteção de acesso</td>
+              <td>Administradores</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="muted">
+        A exclusão ou alteração de registros de auditoria não será
+        disponibilizada na interface administrativa.
+      </p>
+    </section>
+
+    <footer>
+      🔮 FORJA ARCANA · Registros Arcanos · Interface visual
+    </footer>
+  </main>
+
+</div>
+</body>
+</html>

@@ -1102,6 +1102,163 @@ async function worksApi(request, env) {
 }
 
 // ==========================================
+// CONSELHO DA EQUIPE — GESTÃO EXCLUSIVA OWNER
+// ==========================================
+
+function userError(message, status = 400) {
+    return json({ ok: false, error: message }, status);
+}
+
+function validateNewUser(body) {
+    const allowed = new Set(["name", "username", "email", "password", "role"]);
+    if (Object.keys(body).some(field => !allowed.has(field))) {
+        return { error: "Campos não permitidos no cadastro." };
+    }
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const username = typeof body.username === "string" ? body.username.trim().toLowerCase() : "";
+    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    const password = body.password;
+    const role = body.role;
+
+    if (name.length < 2 || name.length > 120 || /[\x00-\x1f\x7f]/.test(name)) {
+        return { error: "Nome inválido (2 a 120 caracteres)." };
+    }
+    if (!/^[a-z0-9_]{3,32}$/.test(username)) {
+        return { error: "Usuário inválido: 3 a 32 letras, números ou _." };
+    }
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return { error: "E-mail inválido." };
+    }
+    if (typeof password !== "string" || password.length < 12 || password.length > 128) {
+        return { error: "Senha deve conter de 12 a 128 caracteres." };
+    }
+    if (role !== "admin" && role !== "moderator") {
+        return { error: "Somente administrador ou moderador podem ser cadastrados." };
+    }
+    return { values: { name, username, email, password, role } };
+}
+
+async function usersApi(request, env, userId = null) {
+    const method = request.method;
+    if (userId === null && method !== "GET" && method !== "POST") {
+        return userError("Método não permitido.", 405);
+    }
+    if (userId !== null && method !== "PATCH") {
+        return userError("Método não permitido.", 405);
+    }
+    if (!env.DB || !env.FORJA_AUTH_SECRET) {
+        return userError("Configuração indisponível.", 503);
+    }
+    if (method !== "GET" && !isSameOrigin(request)) {
+        return userError("Origem não autorizada.", 403);
+    }
+
+    try {
+        const session = await findSession(request, env);
+        if (!session) return userError("Não autenticado.", 401);
+        if (session.role !== "owner") {
+            return userError("Apenas a administração principal pode gerenciar contas.", 403);
+        }
+
+        if (method === "GET") {
+            const result = await env.DB.prepare(
+                `SELECT id, name, username, email, role, status, created_at, updated_at
+                 FROM forja_users
+                 ORDER BY CASE role WHEN 'owner' THEN 0 WHEN 'admin' THEN 1 ELSE 2 END,
+                          created_at ASC, id ASC
+                 LIMIT 200`
+            ).all();
+            return json({ ok: true, users: result.results || [] });
+        }
+
+        const parsed = await readJsonBody(request);
+        if (!parsed.ok) return userError(parsed.error, parsed.status);
+
+        if (method === "POST") {
+            const validated = validateNewUser(parsed.body);
+            if (validated.error) return userError(validated.error);
+            const { name, username, email, password, role } = validated.values;
+            const salt = randomHex(16);
+            const hash = await derivePasswordHash(password, env.FORJA_AUTH_SECRET, salt, 100000);
+            const storedHash = `pbkdf2_sha256_hmacpepper_v1$100000$${salt}$${hash}`;
+            const id = crypto.randomUUID();
+
+            const insert = env.DB.prepare(
+                `INSERT INTO forja_users
+                 (id, name, username, email, password_hash, role, status)
+                 VALUES (?, ?, ?, ?, ?, ?, 'active')`
+            ).bind(id, name, username, email, storedHash, role);
+            const audit = env.DB.prepare(
+                `INSERT INTO forja_audit_logs
+                 (user_id, action, entity_type, entity_id, description, details)
+                 VALUES (?, ?, ?, ?, ?, ?)`
+            ).bind(session.user_id, "user.create", "user", id,
+                "Conta da equipe criada.", JSON.stringify({ username, role }));
+            await env.DB.batch([insert, audit]);
+            return json({ ok: true, message: "Conta criada com sucesso.",
+                user: { id, name, username, email, role, status: "active" } }, 201);
+        }
+
+        // Alteração de cargo ou bloqueio; a conta owner jamais pode ser alterada aqui.
+        if (!/^[0-9a-f-]{36}$/i.test(userId)) {
+            return userError("Identificador inválido.", 400);
+        }
+        const body = parsed.body;
+        if (!Object.keys(body).length || Object.keys(body).some(k => !["role", "status"].includes(k))) {
+            return userError("Informe apenas cargo e/ou situação.");
+        }
+        if (body.role !== undefined && !["admin", "moderator"].includes(body.role)) {
+            return userError("Cargo inválido.");
+        }
+        if (body.status !== undefined && !["active", "disabled"].includes(body.status)) {
+            return userError("Situação inválida.");
+        }
+        const target = await env.DB.prepare(
+            `SELECT id, username, role, status FROM forja_users WHERE id = ? LIMIT 1`
+        ).bind(userId).first();
+        if (!target) return userError("Conta não encontrada.", 404);
+        if (target.role === "owner" || target.id === session.user_id) {
+            return userError("A conta principal não pode ser alterada aqui.", 403);
+        }
+        const nextRole = body.role ?? target.role;
+        const nextStatus = body.status ?? target.status;
+        if (nextRole === target.role && nextStatus === target.status) {
+            return json({ ok: true, message: "Nenhuma alteração necessária." });
+        }
+        const update = env.DB.prepare(
+            `UPDATE forja_users SET role = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+             WHERE id = ? AND role IN ('admin', 'moderator')`
+        ).bind(nextRole, nextStatus, userId);
+        const audit = env.DB.prepare(
+            `INSERT INTO forja_audit_logs
+             (user_id, action, entity_type, entity_id, description, details)
+             VALUES (?, ?, ?, ?, ?, ?)`
+        ).bind(session.user_id, "user.update", "user", userId,
+            "Permissão ou situação de conta alterada.",
+            JSON.stringify({ username: target.username, previous_role: target.role,
+                role: nextRole, previous_status: target.status, status: nextStatus }));
+        const actions = [update, audit];
+        // Alterações de cargo também encerram sessões antigas, para atualizar permissões.
+        if (nextStatus === "disabled" || nextRole !== target.role) {
+            actions.push(env.DB.prepare(
+                `UPDATE forja_sessions SET revoked_at = CURRENT_TIMESTAMP
+                 WHERE user_id = ? AND revoked_at IS NULL`
+            ).bind(userId));
+        }
+        await env.DB.batch(actions);
+        return json({ ok: true, message: "Conta atualizada.",
+            user: { id: userId, role: nextRole, status: nextStatus } });
+    } catch (error) {
+        const message = String(error instanceof Error ? error.message : "");
+        if (/UNIQUE constraint failed: forja_users\.(username|email)/i.test(message)) {
+            return userError("Nome de usuário ou e-mail já cadastrado.", 409);
+        }
+        console.error("FORJA users API failed:", error instanceof Error ? error.name : "Unknown");
+        return userError("Não foi possível gerenciar a equipe neste momento.", 500);
+    }
+}
+
+// ==========================================
 // WORKER PRINCIPAL — ARCANA SCAN
 // ==========================================
 
@@ -1177,6 +1334,18 @@ export default {
 
         if (url.pathname === "/api/forja/works") {
             return worksApi(request, env);
+        }
+
+        // ======================================
+        // CONSELHO DA EQUIPE — SOMENTE OWNER
+        // ======================================
+
+        if (url.pathname === "/api/forja/users") {
+            return usersApi(request, env);
+        }
+        const userMatch = url.pathname.match(/^\/api\/forja\/users\/([0-9a-f-]{36})$/i);
+        if (userMatch) {
+            return usersApi(request, env, userMatch[1]);
         }
 
         // ======================================

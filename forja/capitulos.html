@@ -1,0 +1,394 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Oficina de Capítulos | Forja Arcana</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #100a1b;
+  --sidebar: #1b102d;
+  --panel: #211632;
+  --panel2: #2b1c40;
+  --border: #49345f;
+  --gold: #f7d78b;
+  --purple: #aa7cf0;
+  --text: #f5edff;
+  --muted: #c1afd2;
+  --green: #a9e7c7;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(circle at top right,#29183e,var(--bg) 65%);
+  color: var(--text);
+  font: 14px/1.55 Arial,Helvetica,sans-serif;
+}
+a { color: var(--gold); text-decoration: none; }
+button,input,select,textarea { font: inherit; }
+button { cursor: pointer; }
+.shell { display: grid; grid-template-columns: 255px minmax(0,1fr); min-height: 100vh; }
+.sidebar {
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  padding: 28px 18px;
+}
+.brand { font: bold 23px Georgia,serif; color: var(--gold); margin-bottom: 8px; }
+.brand-sub { font-size: 10px; letter-spacing: 3px; color: var(--purple); }
+.sidebar nav { margin-top: 42px; }
+.sidebar nav a {
+  display: block;
+  padding: 13px 14px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  color: var(--muted);
+}
+.sidebar nav a.active {
+  background: #35234f;
+  color: white;
+  border: 1px solid #5b407c;
+}
+main { padding: 35px; max-width: 1550px; width: 100%; margin: auto; }
+.eyebrow { color: var(--gold); letter-spacing: 2px; font-size: 11px; }
+h1,h2,h3 { font-family: Georgia,serif; }
+h1 { font-size: 38px; color: var(--gold); margin: 5px 0 10px; }
+h2 { color: var(--gold); font-size: 22px; margin-top: 0; }
+h3 { color: #e8d4ff; }
+p,.muted { color: var(--muted); }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+.pill {
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 7px 13px;
+  color: var(--gold);
+  background: #281a3b;
+  font-size: 12px;
+}
+.cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin: 25px 0; }
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  padding: 24px;
+}
+.metric { font: bold 29px Georgia,serif; color: var(--gold); }
+.layout { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,.9fr); gap: 20px; }
+label { display: block; margin: 17px 0 7px; color: #dec8f7; font-size: 13px; font-weight: bold; }
+input,select,textarea {
+  width: 100%;
+  padding: 12px;
+  background: #120b1f;
+  color: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+input:focus,select:focus,textarea:focus { outline: 2px solid var(--purple); }
+textarea { resize: vertical; min-height: 90px; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.full { grid-column: 1/-1; }
+button {
+  border: 1px solid #9870cb;
+  border-radius: 10px;
+  padding: 12px 15px;
+  background: #7548b3;
+  color: white;
+  font-weight: bold;
+}
+button.secondary { background: #35244c; }
+button:disabled { opacity: .48; cursor: not-allowed; }
+button.full-button { width: 100%; margin-top: 18px; }
+.upload {
+  margin-top: 16px;
+  padding: 28px 18px;
+  text-align: center;
+  background: #170f26;
+  border: 2px dashed #71519a;
+  border-radius: 14px;
+}
+.upload-icon { font-size: 38px; }
+.upload strong { display: block; margin: 10px 0; color: var(--gold); }
+.upload small { color: var(--muted); }
+.checks { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 17px; }
+.checks label { display: flex; align-items: center; gap: 8px; margin: 0; }
+.checks input { width: auto; }
+.notice {
+  background: #2a1b3c;
+  border: 1px solid #5d4278;
+  padding: 14px;
+  border-radius: 10px;
+  margin: 20px 0;
+  color: #e6d6fb;
+}
+.list-item { padding: 16px 0; border-bottom: 1px solid var(--border); }
+.list-item:last-child { border-bottom: 0; }
+.list-item strong { display: block; color: #f4e6ff; }
+.tag {
+  display: inline-block;
+  padding: 4px 9px;
+  background: #3b2856;
+  border-radius: 20px;
+  color: #e8d6ff;
+  font-size: 11px;
+  margin: 8px 6px 0 0;
+}
+.preview { background: #170f26; border: 1px solid var(--border); border-radius: 12px; padding: 17px; }
+.preview-line { display: flex; justify-content: space-between; gap: 10px; margin: 10px 0; }
+.preview-line span:first-child { color: var(--muted); }
+.preview-line span:last-child { color: var(--gold); text-align: right; }
+footer { margin-top: 35px; color: var(--muted); font-size: 12px; }
+@media(max-width:1100px) {
+  .layout { grid-template-columns: 1fr; }
+}
+@media(max-width:750px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { padding: 18px; }
+  .sidebar nav { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 15px; }
+  .sidebar nav a { margin: 0; }
+  main { padding: 20px; }
+  .cards { grid-template-columns: 1fr; }
+  h1 { font-size: 30px; }
+}
+@media(max-width:500px) {
+  .fields { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">⚒️ FORJA ARCANA</div>
+    <div class="brand-sub">ADMINISTRAÇÃO</div>
+
+    <nav aria-label="Navegação da Forja">
+      <a href="/forja/painel.html">🏰 Visão Geral</a>
+      <a href="/forja/obras.html">📚 Obras</a>
+      <a href="/forja/capitulos.html" class="active">📖 Capítulos</a>
+      <a href="/forja/publicacoes.html">🎨 Publicações</a>
+      <a href="/forja/equipe.html">👥 Equipe</a>
+      <a href="/forja/auditoria.html">📜 Auditoria</a>
+      <a href="/forja/configuracoes.html">⚙️ Configurações</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">FORJA ARCANA / OFICINA</div>
+        <h1>Oficina de Capítulos</h1>
+        <p>Prepare, organize e revise os capítulos das obras da Arcana Scan.</p>
+      </div>
+      <span class="pill">🔮 Interface em preparação</span>
+    </div>
+
+    <div class="notice">
+      ⚒️ Esta é a interface visual. O envio de arquivos, a leitura de ZIPs,
+      a publicação e a consulta ao banco serão conectados na etapa de integração.
+    </div>
+
+    <section class="cards" aria-label="Indicadores">
+      <div class="card">
+        <div class="muted">Capítulos cadastrados</div>
+        <div class="metric">—</div>
+        <small class="muted">Aguardando integração</small>
+      </div>
+      <div class="card">
+        <div class="muted">Aguardando revisão</div>
+        <div class="metric">—</div>
+        <small class="muted">Aguardando integração</small>
+      </div>
+      <div class="card">
+        <div class="muted">Capítulos publicados</div>
+        <div class="metric">—</div>
+        <small class="muted">Aguardando integração</small>
+      </div>
+    </section>
+
+    <div class="layout">
+      <section class="card">
+        <h2>✨ Preparar novo capítulo</h2>
+        <p>Defina a obra, a numeração e os arquivos do capítulo.</p>
+
+        <form id="chapterForm">
+          <div class="fields">
+            <div class="full">
+              <label for="work">Obra</label>
+              <select id="work" disabled>
+                <option>As obras serão carregadas do catálogo</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="season">Temporada</label>
+              <select id="season" disabled>
+                <option>Selecione uma obra primeiro</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="volume">Volume</label>
+              <select id="volume" disabled>
+                <option>Selecione uma obra primeiro</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="chapterNumber">Número do capítulo</label>
+              <input id="chapterNumber" type="number" min="0" step="0.1"
+                     placeholder="Ex.: 12">
+            </div>
+
+            <div>
+              <label for="chapterTitle">Título do capítulo</label>
+              <input id="chapterTitle" maxlength="200"
+                     placeholder="Ex.: O despertar">
+            </div>
+
+            <div>
+              <label for="chapterDate">Data de publicação</label>
+              <input id="chapterDate" type="datetime-local">
+            </div>
+
+            <div>
+              <label for="chapterStatus">Situação</label>
+              <select id="chapterStatus">
+                <option value="draft">Rascunho</option>
+                <option value="review">Aguardando revisão</option>
+                <option value="scheduled">Agendado</option>
+                <option value="published">Publicado</option>
+              </select>
+            </div>
+
+            <div class="full">
+              <label for="notes">Observações internas</label>
+              <textarea id="notes"
+                        placeholder="Notas para a equipe, correções e revisão..."></textarea>
+            </div>
+          </div>
+
+          <div class="checks">
+            <label>
+              <input id="isFinale" type="checkbox">
+              Capítulo final
+            </label>
+            <label>
+              <input id="notifyReaders" type="checkbox" checked>
+              Preparar anúncio
+            </label>
+          </div>
+
+          <div class="upload">
+            <div class="upload-icon">📦</div>
+            <strong>Envio de capítulos em ZIP</strong>
+            <p>Arquivos compactados com páginas JPG, PNG ou WebP.</p>
+            <input id="zipFile" type="file" accept=".zip" multiple disabled>
+            <small>
+              A importação em lote, a ordenação numérica e a validação
+              de arquivos serão ativadas com o armazenamento.
+            </small>
+          </div>
+
+          <button class="full-button" type="button" disabled>
+            ⚒️ Salvar capítulo
+          </button>
+        </form>
+      </section>
+
+      <section>
+        <div class="card">
+          <h2>🔮 Prévia da organização</h2>
+          <p>Confira a estrutura que será utilizada no acervo.</p>
+
+          <div class="preview">
+            <div class="preview-line">
+              <span>Obra</span>
+              <span id="previewWork">Não selecionada</span>
+            </div>
+            <div class="preview-line">
+              <span>Temporada</span>
+              <span id="previewSeason">A definir</span>
+            </div>
+            <div class="preview-line">
+              <span>Volume</span>
+              <span id="previewVolume">A definir</span>
+            </div>
+            <div class="preview-line">
+              <span>Capítulo</span>
+              <span id="previewNumber">—</span>
+            </div>
+            <div class="preview-line">
+              <span>Situação</span>
+              <span id="previewStatus">Rascunho</span>
+            </div>
+          </div>
+
+          <h3>📖 Numeração contínua</h3>
+          <p>
+            A numeração dos capítulos seguirá a sequência da obra,
+            mesmo quando houver mudança de temporada ou volume.
+          </p>
+
+          <h3>🛡️ Proteção contra duplicatas</h3>
+          <p>
+            Na integração, capítulos já existentes não serão
+            substituídos automaticamente por novos arquivos.
+          </p>
+        </div>
+
+        <div class="card" style="margin-top:20px">
+          <h2>📜 Fila de capítulos</h2>
+          <p>Os capítulos cadastrados aparecerão aqui após a integração.</p>
+
+          <div class="list-item">
+            <strong>📦 Importações pendentes</strong>
+            <span class="tag">Sem dados conectados</span>
+          </div>
+
+          <div class="list-item">
+            <strong>📝 Aguardando revisão</strong>
+            <span class="tag">Sem dados conectados</span>
+          </div>
+
+          <div class="list-item">
+            <strong>✨ Prontos para publicar</strong>
+            <span class="tag">Sem dados conectados</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      🔮 FORJA ARCANA · Oficina de Capítulos · Interface visual
+    </footer>
+  </main>
+</div>
+
+<script>
+"use strict";
+
+const numberInput = document.getElementById("chapterNumber");
+const statusInput = document.getElementById("chapterStatus");
+
+numberInput.addEventListener("input", () => {
+  document.getElementById("previewNumber").textContent =
+    numberInput.value || "—";
+});
+
+statusInput.addEventListener("change", () => {
+  const labels = {
+    draft: "Rascunho",
+    review: "Aguardando revisão",
+    scheduled: "Agendado",
+    published: "Publicado"
+  };
+
+  document.getElementById("previewStatus").textContent =
+    labels[statusInput.value] || "Rascunho";
+});
+</script>
+
+</body>
+</html>

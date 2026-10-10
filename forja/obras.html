@@ -413,6 +413,26 @@ function renderWorks(works) {
       ));
     }
 
+    // Acesso ao Grimório de Edição
+    const editLink = document.createElement("a");
+
+    editLink.href =
+      "/forja/editar-obra.html?id=" +
+      encodeURIComponent(work.id);
+
+    editLink.textContent = "✏️ Editar obra";
+
+    editLink.style.display = "inline-block";
+    editLink.style.marginTop = "14px";
+    editLink.style.padding = "10px 16px";
+    editLink.style.background = "#7548b3";
+    editLink.style.color = "#ffffff";
+    editLink.style.borderRadius = "9px";
+    editLink.style.fontWeight = "bold";
+    editLink.style.textDecoration = "none";
+
+    item.append(editLink);
+
     container.append(item);
   }
 }

@@ -80,7 +80,23 @@
         logout.disabled = false;
       }
     });
-    card.append(heading, description, email, home, logout);
+    const avatarSection=document.createElement('section');
+    avatarSection.style.cssText='text-align:left;margin:22px 0;padding:18px;border:1px solid #77558b;border-radius:15px;background:#21142d;';
+    const title=document.createElement('h3');title.textContent='📸 Minha foto de perfil';avatarSection.append(title);
+    const current=document.createElement('img');current.alt='Sua foto de perfil';current.style.cssText='width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #e9c77e;display:block;margin:12px 0';
+    const refresh=()=>{current.src=reader.photo_url?'/api/reader/photo?t='+Date.now():'/'+(reader.avatar||'nyx').toUpperCase()+'.png'};refresh();avatarSection.append(current);
+    const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:15px 0';
+    for(const name of ['lucien','nyx','elara','coby']){const b=document.createElement('button');b.type='button';b.style.cssText='background:#30203f;border:1px solid #9e7ab6;color:#fff;border-radius:12px;padding:8px;cursor:pointer;';const img=document.createElement('img');img.src='/'+name.toUpperCase()+'.png';img.alt=name;img.style.cssText='width:100%;aspect-ratio:1;object-fit:cover;border-radius:50%';const caption=document.createElement('span');caption.textContent=name[0].toUpperCase()+name.slice(1);b.append(img,caption);b.addEventListener('click',async()=>{b.disabled=true;try{const d=await api('profile',{avatar:name});reader.avatar=d.profile.avatar;reader.photo_url=null;refresh();photoStatus.textContent='✨ Avatar atualizado.'}catch(e){photoStatus.textContent='⚠️ '+e.message}finally{b.disabled=false}});grid.append(b)}avatarSection.append(grid);
+    const uploadLabel=document.createElement('label');uploadLabel.textContent='Ou selecione sua própria foto (JPG, PNG ou WebP, até 3 MB):';uploadLabel.style.display='block';
+    const file=document.createElement('input');file.type='file';file.accept='image/jpeg,image/png,image/webp';file.style.cssText='display:block;width:100%;margin:10px 0';uploadLabel.append(file);avatarSection.append(uploadLabel);
+    const upload=document.createElement('button');upload.type='button';upload.className='profile-submit';upload.textContent='📷 Usar minha foto';
+    const remove=document.createElement('button');remove.type='button';remove.className='profile-submit';remove.textContent='Remover foto personalizada';
+    const photoStatus=document.createElement('p');photoStatus.setAttribute('role','status');photoStatus.style.color='#f3d8a6';
+    upload.addEventListener('click',async()=>{const f=file.files[0];if(!f){photoStatus.textContent='Escolha uma foto primeiro.';return}if(!['image/jpeg','image/png','image/webp'].includes(f.type)||f.size>3*1024*1024){photoStatus.textContent='Use JPG, PNG ou WebP com até 3 MB.';return}upload.disabled=true;try{const r=await fetch('/api/reader/photo',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':f.type},body:f});const d=await r.json();if(!r.ok||!d.ok)throw Error(d.error||'Falha ao enviar.');reader.photo_url=d.photo_url;refresh();file.value='';photoStatus.textContent='✨ Sua foto foi salva!'}catch(e){photoStatus.textContent='⚠️ '+e.message}finally{upload.disabled=false}});
+    remove.addEventListener('click',async()=>{remove.disabled=true;try{const r=await fetch('/api/reader/photo',{method:'DELETE',credentials:'same-origin'});const d=await r.json();if(!r.ok||!d.ok)throw Error(d.error||'Falha ao remover.');reader.photo_url=null;refresh();photoStatus.textContent='Foto removida.'}catch(e){photoStatus.textContent='⚠️ '+e.message}finally{remove.disabled=false}});
+    avatarSection.append(upload,remove,photoStatus);
+    const links=document.createElement('p');links.style.cssText='display:flex;gap:12px;flex-wrap:wrap;justify-content:center;';for(const [name,url] of [['💜 Favoritos','/favoritos.html'],['📚 Minhas Listas','/minhas-listas.html']]){const a=document.createElement('a');a.href=url;a.textContent=name;links.append(a)}
+    card.append(heading, description, email, avatarSection, links, home, logout);
     gateway.prepend(card);
   }
 
@@ -114,6 +130,7 @@
     }
     if (password.length < 8) {
   registerMessage.textContent = "⚠️ A senha precisa ter pelo menos 8 caracteres.";
+      return;
     }
     registerButton.disabled = true;
     registerButton.textContent = "Criando conta...";

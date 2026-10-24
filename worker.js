@@ -1029,7 +1029,7 @@ async function worksApi(request, env) {
                         created_at, updated_at
                  FROM forja_works
                  ORDER BY created_at DESC, id DESC
-                 LIMIT 50`
+                 LIMIT 500`
             ).all();
             return json({ ok: true, works: result.results || [] });
         }
@@ -1346,11 +1346,13 @@ async function readerApi(request, env, action) {
     }
 
     try {
+        if (action === "me" || action === "login") await ensureArcanaTables(env);
         if (action === "me") {
             const session = await readerSession(request, env);
             if (!session) return readerError("Não autenticado.", 401);
             return json({ ok: true, reader: {
-                id: session.id, username: session.username, email: session.email
+                id: session.id, username: session.username, email: session.email,
+                ...readerProfileData(await getReaderProfile(env.DB,session.id))
             }});
         }
         if (action === "logout") {
@@ -1462,7 +1464,8 @@ async function readerApi(request, env, action) {
             ).bind(crypto.randomUUID(), reader.id,
                 await sha256Hex(token), expiresAt).run();
             return json({ ok: true, reader: {
-                id: reader.id, username: reader.username, email: reader.email
+                id: reader.id, username: reader.username, email: reader.email,
+                ...readerProfileData(await getReaderProfile(env.DB,reader.id))
             }}, 200, { "Set-Cookie": readerCookie(token) });
         }
         return readerError("Rota não encontrada.", 404);
@@ -1660,7 +1663,7 @@ async function chaptersApi(request, env) {
                 c.chapter_number,c.chapter_title AS title,c.publication_status AS status,
                 c.created_at,c.updated_at FROM forja_chapters c
                 JOIN forja_works w ON w.id=c.work_id
-                ORDER BY c.created_at DESC,c.id DESC LIMIT 100`).all();
+                ORDER BY c.created_at DESC,c.id DESC LIMIT 1000`).all();
             return json({ok:true,chapters:rows.results||[]});
         }
         const parsed = await readJsonBody(request);
@@ -2088,10 +2091,166 @@ async function arcanaChapterAdmin(request,env,chapterId,action,pageNumber) {
     }catch(e){console.error("Chapter admin error",e instanceof Error?e.name:"Unknown");return workError("Não foi possível processar o capítulo.",500)}
 }
 
+
+// ============================================================
+// ARCANA — perfis, biblioteca pessoal e recrutamento (D1 + R2)
+// Aplicar MIGRACAO_ARCANA_FINAL.sql antes do deploy.
+// ============================================================
+// Preparação automática e idempotente: publicar no GitHub basta para criar as novas tabelas.
+let arcanaTablesPromise = null;
+async function ensureArcanaTables(env) {
+    if (!env.DB) throw new Error('D1 indisponível');
+    if (!arcanaTablesPromise) {
+        const statements = ["CREATE TABLE IF NOT EXISTS reader_profiles (\n reader_id TEXT PRIMARY KEY REFERENCES reader_users(id) ON DELETE CASCADE,\n avatar TEXT NOT NULL DEFAULT 'nyx' CHECK(avatar IN ('lucien','nyx','elara','coby')),\n photo_key TEXT,\n updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP\n)", "CREATE TABLE IF NOT EXISTS reader_shelves (\n reader_id TEXT NOT NULL REFERENCES reader_users(id) ON DELETE CASCADE,\n work_id TEXT NOT NULL REFERENCES forja_works(id) ON DELETE CASCADE,\n shelf TEXT NOT NULL CHECK(shelf IN ('favoritos','amorzinho','casei-com-a-putaria','vou-sofrer','ler-de-madrugada','meus-xodos')),\n created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n PRIMARY KEY(reader_id,work_id,shelf)\n)", 'CREATE INDEX IF NOT EXISTS idx_reader_shelves_reader ON reader_shelves(reader_id,shelf)', "CREATE TABLE IF NOT EXISTS arcana_applications (\n id TEXT PRIMARY KEY,\n name TEXT NOT NULL,\n email TEXT NOT NULL,\n role TEXT NOT NULL,\n experience TEXT NOT NULL DEFAULT '',\n message TEXT NOT NULL DEFAULT '',\n ip_hash TEXT NOT NULL,\n status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new','reviewing','accepted','rejected')),\n created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP\n)", 'CREATE INDEX IF NOT EXISTS idx_arcana_applications_ip ON arcana_applications(ip_hash,created_at)'];
+        arcanaTablesPromise = (async () => { for (const sql of statements) await env.DB.prepare(sql).run(); })().catch(error => { arcanaTablesPromise = null; throw error; });
+    }
+    await arcanaTablesPromise;
+}
+const ARCANA_AVATARS = new Set(['lucien','nyx','elara','coby']);
+const ARCANA_SHELVES = new Set(['amorzinho','casei-com-a-putaria','vou-sofrer','ler-de-madrugada','meus-xodos']);
+const ARCANA_ROLES = ['Tradutor(a)','Revisor(a)','Editor(a)','Cleaner','Redrawer','Typesetter','Uploader','Divulgação'];
+function readerProfileData(row) {
+    return { avatar: row?.avatar || 'nyx', photo_url: row?.photo_key ? '/api/reader/photo' : null };
+}
+async function getReaderProfile(db, id) {
+    return await db.prepare('SELECT avatar,photo_key FROM reader_profiles WHERE reader_id=?').bind(id).first();
+}
+async function readerExtraApi(request,env,kind,sub='') {
+    if(!env.DB) return readerError('Banco de dados indisponível.',503);
+    const method=request.method;
+    if(!['GET','POST','PUT','DELETE'].includes(method))return readerError('Método não permitido.',405);
+    if(method!=='GET'&&!isSameOrigin(request))return readerError('Origem não autorizada.',403);
+    try {
+        await ensureArcanaTables(env);
+        const reader=await readerSession(request,env);
+        if(!reader)return readerError('Entre na sua conta para continuar.',401);
+        if(kind==='profile') {
+            if(method==='GET')return json({ok:true,reader:{id:reader.id,username:reader.username,email:reader.email,...readerProfileData(await getReaderProfile(env.DB,reader.id))}});
+            if(method!=='POST')return readerError('Método não permitido.',405);
+            const body=await readJsonBody(request);if(!body.ok)return readerError(body.error,body.status);
+            if(Object.keys(body.body).length!==1||!ARCANA_AVATARS.has(body.body.avatar))return readerError('Escolha um avatar oficial.');
+            const old=await getReaderProfile(env.DB,reader.id);
+            await env.DB.prepare(`INSERT INTO reader_profiles(reader_id,avatar,photo_key) VALUES(?,?,NULL)
+                ON CONFLICT(reader_id) DO UPDATE SET avatar=excluded.avatar,photo_key=NULL,updated_at=CURRENT_TIMESTAMP`).bind(reader.id,body.body.avatar).run();
+            if(old?.photo_key&&env.MEDIA)await env.MEDIA.delete(old.photo_key).catch(()=>{});
+            return json({ok:true,profile:{avatar:body.body.avatar,photo_url:null}});
+        }
+        if(kind==='photo') {
+            if(!env.MEDIA)return readerError('Armazenamento indisponível.',503);
+            const old=await getReaderProfile(env.DB,reader.id);
+            if(method==='GET') {
+                if(!old?.photo_key)return readerError('Foto não cadastrada.',404);
+                const obj=await env.MEDIA.get(old.photo_key);
+                if(!obj)return readerError('Foto não encontrada.',404);
+                return new Response(obj.body,{headers:{'Content-Type':obj.httpMetadata?.contentType||'image/jpeg','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
+            }
+            if(method==='DELETE') {
+                await env.DB.prepare(`INSERT INTO reader_profiles(reader_id,avatar,photo_key) VALUES(?, 'nyx',NULL)
+                    ON CONFLICT(reader_id) DO UPDATE SET photo_key=NULL,updated_at=CURRENT_TIMESTAMP`).bind(reader.id).run();
+                if(old?.photo_key)await env.MEDIA.delete(old.photo_key).catch(()=>{});
+                return json({ok:true});
+            }
+            if(method!=='PUT')return readerError('Método não permitido.',405);
+            const mime=(request.headers.get('Content-Type')||'').split(';')[0].toLowerCase();
+            if(!['image/png','image/jpeg','image/webp'].includes(mime))return readerError('Use JPG, PNG ou WebP.',415);
+            const len=request.headers.get('Content-Length');
+            if(len!==null&&(+len>3*1024*1024||+len<12||!Number.isSafeInteger(+len)))return readerError('Foto deve ter até 3 MB.',413);
+            const buffer=await request.arrayBuffer();
+            if(buffer.byteLength<12||buffer.byteLength>3*1024*1024||!validImageSignature(new Uint8Array(buffer),mime))return readerError('Arquivo de imagem inválido.',415);
+            const ext={'image/png':'png','image/jpeg':'jpg','image/webp':'webp'}[mime];
+            const key=`readers/${reader.id}/profile/${crypto.randomUUID()}.${ext}`;
+            await env.MEDIA.put(key,buffer,{httpMetadata:{contentType:mime}});
+            try{await env.DB.prepare(`INSERT INTO reader_profiles(reader_id,avatar,photo_key) VALUES(?,'nyx',?)
+                ON CONFLICT(reader_id) DO UPDATE SET photo_key=excluded.photo_key,updated_at=CURRENT_TIMESTAMP`).bind(reader.id,key).run();}
+            catch(e){await env.MEDIA.delete(key).catch(()=>{});throw e;}
+            if(old?.photo_key)await env.MEDIA.delete(old.photo_key).catch(()=>{});
+            return json({ok:true,photo_url:'/api/reader/photo'});
+        }
+        if(kind==='favorites'||kind==='lists') {
+            if(method==='GET') {
+                const rows=await env.DB.prepare(`SELECT s.work_id,s.shelf,w.title,w.slug,w.publication_status,
+                    EXISTS(SELECT 1 FROM forja_work_images i WHERE i.work_id=w.id AND i.kind='cover') AS has_cover
+                    FROM reader_shelves s JOIN forja_works w ON w.id=s.work_id
+                    WHERE s.reader_id=? AND s.shelf ${kind==='favorites'?"= 'favoritos'":"<> 'favoritos'"}
+                    AND w.publication_status='published' ORDER BY s.created_at DESC LIMIT 500`).bind(reader.id).all();
+                return json({ok:true,items:(rows.results||[]).map(x=>({...x,cover_url:x.has_cover?`/api/catalog/media/works/${x.work_id}/cover`:null}))});
+            }
+            if(!['POST','DELETE'].includes(method))return readerError('Método não permitido.',405);
+            const body=await readJsonBody(request);if(!body.ok)return readerError(body.error,body.status);
+            const b=body.body;
+            if(typeof b.work_id!=='string'||!ARCANA_UUID.test(b.work_id))return readerError('Obra inválida.');
+            const shelf=kind==='favorites'?'favoritos':b.shelf;
+            if(kind==='lists'&&!ARCANA_SHELVES.has(shelf))return readerError('Lista inválida.');
+            if(Object.keys(b).some(k=>!['work_id',...(kind==='lists'?['shelf']:[])].includes(k)))return readerError('Dados inválidos.');
+            if(method==='POST') {
+                const exists=await env.DB.prepare("SELECT id FROM forja_works WHERE id=? AND publication_status='published'").bind(b.work_id).first();
+                if(!exists)return readerError('Obra indisponível.',404);
+                await env.DB.prepare(`INSERT OR IGNORE INTO reader_shelves(reader_id,work_id,shelf) VALUES(?,?,?)`).bind(reader.id,b.work_id,shelf).run();
+            }else await env.DB.prepare(`DELETE FROM reader_shelves WHERE reader_id=? AND work_id=? AND shelf=?`).bind(reader.id,b.work_id,shelf).run();
+            return json({ok:true});
+        }
+        return readerError('Rota não encontrada.',404);
+    }catch(e){console.error('Reader extras',e instanceof Error?e.name:'Unknown');return readerError('Não foi possível processar sua solicitação.',500);}
+}
+async function publicGenres(request,env){
+    if(request.method!=='GET')return workError('Método não permitido.',405);
+    if(!env.DB)return workError('Serviço indisponível.',503);
+    try{const rows=await env.DB.prepare(`SELECT g.id,g.name,g.slug,w.id AS work_id,w.title,w.slug AS work_slug,
+        EXISTS(SELECT 1 FROM forja_work_images i WHERE i.work_id=w.id AND i.kind='cover') AS has_cover
+        FROM forja_genres g LEFT JOIN forja_work_genres wg ON wg.genre_id=g.id
+        LEFT JOIN forja_works w ON w.id=wg.work_id AND w.publication_status='published'
+        ORDER BY g.name,w.title LIMIT 3000`).all();
+        const genres=new Map();for(const r of rows.results||[]){if(!genres.has(r.id))genres.set(r.id,{id:r.id,name:r.name,slug:r.slug,works:[]});
+            if(r.work_id)genres.get(r.id).works.push({id:r.work_id,title:r.title,slug:r.work_slug,cover_url:r.has_cover?`/api/catalog/media/works/${r.work_id}/cover`:null});}
+        return json({ok:true,genres:[...genres.values()]});
+    }catch(e){console.error('Public genres',e instanceof Error?e.name:'Unknown');return workError('Não foi possível carregar gêneros.',500);}
+}
+async function recruitmentApi(request,env,admin=false){
+    if(!env.DB)return workError('Serviço indisponível.',503);
+    try { await ensureArcanaTables(env); } catch { return workError('Não foi possível preparar o banco.',503); }
+    if(admin){
+        if(!['GET','PATCH'].includes(request.method))return workError('Método não permitido.',405);
+        if(request.method!=='GET'&&!isSameOrigin(request))return workError('Origem não autorizada.',403);
+        const user=await findSession(request,env);if(!user)return workError('Não autenticado.',401);
+        if(!['owner','admin'].includes(user.role))return workError('Acesso negado.',403);
+        try{
+            if(request.method==='GET'){const rows=await env.DB.prepare('SELECT id,name,email,role,experience,message,status,created_at FROM arcana_applications ORDER BY created_at DESC LIMIT 200').all();return json({ok:true,applications:rows.results||[]});}
+            const parsed=await readJsonBody(request);if(!parsed.ok)return workError(parsed.error,parsed.status);
+            const {id,status}=parsed.body;
+            if(Object.keys(parsed.body).length!==2||!ARCANA_UUID.test(id)||!['new','reviewing','accepted','rejected'].includes(status))return workError('Dados inválidos.');
+            const result=await env.DB.prepare('UPDATE arcana_applications SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').bind(status,id).run();
+            if(!result.meta?.changes)return workError('Candidatura não encontrada.',404);
+            return json({ok:true});
+        }catch(e){console.error('Recruitment admin',e instanceof Error?e.name:'Unknown');return workError('Falha no recrutamento.',500);}
+    }
+    if(request.method==='GET')return json({ok:true,roles:ARCANA_ROLES});
+    if(request.method!=='POST')return workError('Método não permitido.',405);
+    if(!isSameOrigin(request))return workError('Origem não autorizada.',403);
+    const parsed=await readJsonBody(request);if(!parsed.ok)return workError(parsed.error,parsed.status);
+    const b=parsed.body;
+    if(Object.keys(b).some(k=>!['name','email','role','experience','message','website'].includes(k)))return workError('Dados inválidos.');
+    if(b.website)return workError('Envio inválido.',400);
+    const name=cleanRequiredText(b.name,100),email=typeof b.email==='string'?b.email.trim().toLowerCase():'',role=b.role;
+    const experience=cleanOptionalText(b.experience,1000),message=cleanOptionalText(b.message,2000);
+    if(!name||!email||email.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!ARCANA_ROLES.includes(role)||experience===undefined||message===undefined)return workError('Preencha os dados corretamente.');
+    try{
+        const ipHash=await getIpHash(request,env.FORJA_AUTH_SECRET||'arcana')||await sha256Hex('arcana:unknown-ip');
+        const limit=await env.DB.prepare("SELECT COUNT(*) AS n FROM arcana_applications WHERE ip_hash=? AND created_at>=datetime('now','-24 hours')").bind(ipHash).first();
+        if(Number(limit?.n)>=3)return workError('Limite de candidaturas atingido. Tente amanhã.',429);
+        await env.DB.prepare('INSERT INTO arcana_applications(id,name,email,role,experience,message,ip_hash) VALUES(?,?,?,?,?,?,?)').bind(crypto.randomUUID(),name,email,role,experience||'',message||'',ipHash).run();
+        return json({ok:true,message:'Candidatura recebida. Obrigada por querer fazer parte da ARCANA!'},201);
+    }catch(e){console.error('Recruitment public',e instanceof Error?e.name:'Unknown');return workError('Não foi possível enviar sua candidatura.',500);}
+}
+
 export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
 
+        if(url.pathname==='/api/catalog/genres')return publicGenres(request,env);
+        const readerExtra=url.pathname.match(/^\/api\/reader\/(profile|photo|favorites|lists)$/);
+        if(readerExtra)return readerExtraApi(request,env,readerExtra[1]);
+        if(url.pathname==='/api/recruitment')return recruitmentApi(request,env,false);
+        if(url.pathname==='/api/forja/recruitment')return recruitmentApi(request,env,true);
         // Catálogo público (somente obras e capítulos publicados)
         if(url.pathname==="/api/catalog/works")return arcanaPublicCatalog(request,env,"list");
         let m=url.pathname.match(/^\/api\/catalog\/media\/works\/([0-9a-f-]{36})\/(cover|banner|background)$/i);

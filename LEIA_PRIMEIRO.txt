@@ -1,0 +1,57 @@
+ARCANA SCAN + FORJA ARCANA | PACOTE INTEGRADO
+================================================
+
+INSTALAÇÃO NO GITHUB
+1. Faça uma cópia de segurança do repositório e, se possível, do banco D1.
+2. EXTRAIA este ZIP no computador. O GitHub NÃO extrai automaticamente arquivos ZIP enviados como um arquivo único.
+3. Abra o repositório arcanascan/arcana-scan, na branch main.
+4. Envie o CONTEÚDO extraído (arquivos da raiz e pasta forja/) para a raiz do repositório, substituindo os arquivos correspondentes. Preserve a estrutura de pastas.
+5. Faça o commit. Se o Cloudflare estiver integrado ao GitHub, aguarde a implantação automática.
+6. Não altere os secrets, bindings D1/R2, banco, domínio ou credenciais existentes.
+
+BANCO DE DADOS
+As tabelas novas de perfis, favoritos/listas e candidaturas são criadas automaticamente pelo Worker na primeira utilização das respectivas funções, usando CREATE TABLE IF NOT EXISTS. O arquivo MIGRACAO_ARCANA_FINAL.sql fica como referência e alternativa para execução manual caso o ambiente restrinja a criação automática. Não execute a migração se não houver necessidade.
+
+NOVIDADES DO SITE
+- Gêneros: generos.html, alimentado pelo catálogo publicado no D1.
+- Favoritos: favoritos.html, associados à conta de cada leitor.
+- Minhas Listas: minhas-listas.html, cinco listas pessoais.
+- Recrutamento: recrutamento.html, formulário e acompanhamento na Forja.
+- Perfil: seleção dos avatares oficiais Lucien, Nyx, Elara e Coby, ou foto própria JPG/PNG/WebP até 3 MB. A foto é privada no R2 e servida somente à conta autenticada.
+- Menu principal: nome e foto da conta conectada.
+- Página de obra: botões para salvar em favoritos ou nas listas.
+
+NOVIDADES DA FORJA
+- Navegação administrativa lateral inspirada na FLEUR/WordPress, com identidade ARCANA.
+- Todas as Obras: forja/obras.html, com pesquisa e edição.
+- Cadastro completo: quatro abas editoriais na mesma obra, com lista de capítulos, envio único e envio em lote.
+- Capítulos: seleção de imagens da galeria com prévia e botões para alterar ordem; ZIP único ou múltiplos ZIPs. Cada ZIP do lote começa com número do capítulo (01.zip, 02.zip etc.).
+- Capítulos em lote criados como rascunho, para revisão antes de publicar.
+- Publicação da obra diretamente no cadastro, conforme permissão owner/admin.
+- Candidaturas: forja/recrutamento.html, acesso restrito a owner/admin.
+- Mantidos Salão de Comando, equipe, auditoria, operações e publicações já existentes.
+
+LIMITES E OBSERVAÇÕES
+- Cada imagem de capítulo: até 8 MB; até 500 páginas por capítulo.
+- Cada ZIP: até 70 MB; até 30 ZIPs por lote. Descompactação é feita no navegador; aparelhos com pouca memória podem precisar enviar em partes.
+- Em falha durante um lote, capítulos/páginas já enviados permanecem salvos; confira o rascunho antes de tentar novamente.
+- Fotos de perfil: até 3 MB. Formatos aceitos: JPG, PNG, WebP.
+- A Forja preserva as permissões de owner, admin e moderator já suportadas pelo Worker original; não foram criados novos papéis no banco existente.
+- O Ateliê de Publicações continua com a preparação de título/legenda e registros; NÃO publica automaticamente em redes sociais e não gera artes automaticamente.
+- O cadastro conserva as preferências editoriais existentes que dependem de integrações específicas.
+
+VERIFICAÇÃO APÓS PUBLICAR
+1. Abra https://arcanascan.com/api/health e confira ok:true.
+2. Abra https://arcanascan.com/generos.html.
+3. Entre como leitor, escolha um avatar, teste foto própria, favoritos e listas.
+4. Entre em https://arcanascan.com/forja/painel.html.
+5. Abra Todas as Obras, edite uma obra de teste e envie um capítulo com 2 imagens, mantendo-o como rascunho; teste o ZIP depois.
+6. Teste candidatura e visualize no painel de recrutamento.
+
+VALIDAÇÃO REALIZADA
+- Verificação de sintaxe JavaScript (Worker, scripts e scripts inline).
+- Migração SQLite aplicada duas vezes sem erro.
+- Testes simulados de Worker + D1/R2 para sessão, avatar, foto, favoritos, listas, gêneros e recrutamento.
+- NÃO houve acesso às contas Cloudflare/GitHub, nem teste no site de produção.
+
+ARCANA SCAN • Cada história merece sua magia.

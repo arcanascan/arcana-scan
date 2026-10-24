@@ -662,8 +662,13 @@
                 const data = await response.json();
 
                 if (data.ok && data.user) {
-                    window.location.replace("/forja/painel.html");
-                    return;
+                    showMessage(
+                        "Sessão ativa. Bem-vinda à " +
+                        "FORJA ARCANA, " +
+                        data.user.name +
+                        "! O painel está sendo preparado.",
+                        "success"
+                    );
                 }
             } catch {
                 // Falhas temporárias de conexão
@@ -743,8 +748,14 @@
                     // mantida pelo formulário.
                     passwordInput.value = "";
 
-                    window.location.replace("/forja/painel.html");
-                    return;
+                    showMessage(
+                        "Acesso autorizado! " +
+                        "Bem-vinda à FORJA ARCANA, " +
+                        data.user.name +
+                        "! 👑 O painel administrativo " +
+                        "será liberado nas próximas etapas.",
+                        "success"
+                    );
                 } catch {
                     showMessage(
                         "Não foi possível conectar " +

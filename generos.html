@@ -1,1 +1,179 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gêneros • ARCANA SCAN</title><link rel="icon" href="/LOGO.png"><link rel="stylesheet" href="/arcana-conta.css"></head><body class="arcana-sub" data-arcana-page="generos"><header class="ac-top"><a href="/index.html">✦ ARCANA SCAN</a><nav><a href="/index.html">Biblioteca</a><a href="/generos.html">Gêneros</a><a href="/favoritos.html">Favoritos</a><a href="/minhas-listas.html">Minhas Listas</a><a href="/perfil.html">Meu Perfil</a></nav></header><main class="ac-main"><h1>Gêneros</h1><p class="ac-muted">Explore as obras publicadas em cada gênero do Grimório.</p><div id="ac-content"></div><p id="ac-status" class="ac-status" role="status" aria-live="polite"></p></main><script src="/arcana-conta.js" defer></script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Gêneros — ARCANA SCAN, sua biblioteca de histórias.">
+  <title>Gêneros | ARCANA SCAN</title>
+  <link rel="icon" type="image/png" href="/LOGO.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/arcana-conta.css">
+</head>
+<body class="arcana-sub" data-arcana-page="generos">
+    <header class="site-header" id="siteHeader">
+
+        <a href="/index.html#grande-acervo" class="header-logo" aria-label="ARCANA SCAN — Início">
+            <img src="/LOGO.png" alt="ARCANA SCAN">
+        </a>
+
+        <nav class="header-navigation" aria-label="Navegação principal">
+
+            <a href="/index.html#grande-acervo">Acervo</a>
+
+            <a href="/index.html#atualizacoes">Atualizações</a>
+
+            <!-- PÁGINA DE PRÓXIMAS REVELAÇÕES -->
+            <a href="/revelacoes.html">Próximas Revelações</a>
+
+            <a href="/generos.html">Gêneros</a>
+
+            <a href="/favoritos.html">Favoritos</a>
+
+        </nav>
+
+<a class="ac-nav-library" href="/index.html#grande-acervo" aria-label="Explorar a biblioteca"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Explorar o acervo</a>
+
+        <div class="header-actions">
+
+            <button
+                class="header-icon"
+                type="button"
+                aria-label="Notificações"
+            >
+                <i class="fa-regular fa-bell"></i>
+            </button>
+
+            <button
+                class="header-icon"
+                id="themeButton"
+                type="button"
+                aria-label="Alternar tema"
+            >
+                <i class="fa-regular fa-moon"></i>
+            </button>
+
+            <button
+                class="menu-button"
+                id="menuButton"
+                type="button"
+                aria-label="Abrir menu"
+                aria-expanded="false"
+            >
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =========================================
+         MENU LATERAL
+    ========================================== -->
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <aside
+        class="side-menu"
+        id="sideMenu"
+        aria-hidden="true"
+    >
+
+        <div class="side-menu-header">
+
+            <img src="/LOGO.png" alt="ARCANA SCAN">
+
+            <button
+                id="menuClose"
+                class="menu-close"
+                type="button"
+                aria-label="Fechar menu"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <nav class="side-navigation" aria-label="Menu da ARCANA">
+
+            <a href="/perfil.html">Perfil</a>
+
+            <a href="/revelacoes.html">Próximas Revelações</a>
+
+            <a href="/generos.html">Gêneros</a>
+
+            <a href="/favoritos.html">Favoritos</a>
+
+
+            <!-- MINHAS LISTAS -->
+
+            <details class="lists-menu">
+
+                <summary>Minhas Listas</summary>
+
+                <div class="lists-content">
+
+                    <a href="/minhas-listas.html?lista=amorzinho">
+                        <span class="list-emoji" aria-hidden="true">💕</span>
+                        <span>Amorzinho</span>
+                    </a>
+
+                    <a href="/minhas-listas.html?lista=casei-com-a-putaria">
+                        <span class="list-emoji" aria-hidden="true">🔥</span>
+                        <span>Casei com a Putaria</span>
+                    </a>
+
+                    <a href="/minhas-listas.html?lista=vou-sofrer">
+                        <span class="list-emoji" aria-hidden="true">🥺</span>
+                        <span>Vou sofrer</span>
+                    </a>
+
+                    <a href="/minhas-listas.html?lista=ler-de-madrugada">
+                        <span class="list-emoji" aria-hidden="true">🌙</span>
+                        <span>Ler de madrugada</span>
+                    </a>
+
+                    <a href="/minhas-listas.html?lista=meus-xodos">
+                        <span class="list-emoji" aria-hidden="true">👑</span>
+                        <span>Meus Xodós</span>
+                    </a>
+
+                </div>
+
+            </details>
+
+            <a href="/index.html#hospedagens">Hospedagens</a>
+
+            <a href="/recrutamento.html">Recrutamento</a>
+
+            <a href="/index.html#sobre">Sobre</a>
+
+        </nav>
+
+    </aside>
+  <main class="site-main ac-main ac-collection-page" id="conteudo">
+    <section class="ac-collection-hero" aria-labelledby="page-title">
+      <div class="ac-hero-copy">
+        <span class="ac-eyebrow">✦ EXPLORE OS CAMINHOS DO GRIMÓRIO</span>
+        <h1 id="page-title">Gêneros</h1>
+        <span class="ac-gold-line" aria-hidden="true"></span>
+        <p class="ac-muted">Descubra histórias pelos gêneros que fazem sua imaginação despertar.</p>
+      </div>
+      <figure class="ac-hero-guardian">
+        <img src="/NYX.png" alt="Nyx, personagem oficial da ARCANA" loading="eager">
+        <figcaption>A GUARDIÃ DO ACERVO <strong>NYX</strong></figcaption>
+      </figure>
+    </section>
+    <section class="ac-collection-content" aria-label="Conteúdo de Gêneros">
+      
+      <div id="ac-content"></div>
+      <p id="ac-status" class="ac-status" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+  <script src="/script.js" defer></script>
+  <script src="/arcana-conta.js" defer></script>
+</body>
+</html>

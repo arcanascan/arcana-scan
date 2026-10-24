@@ -1615,6 +1615,72 @@ async function auditApi(request, env) {
 // ================================================================
 // FORJA — GÊNEROS, TAGS, CAPÍTULOS (METADADOS), PUBLICAÇÕES (RASCUNHOS)
 // ================================================================
+
+// Taxonomias iniciais ARCANA: referência editorial Lezhin + tags complementares ARCANA.
+// Marcador persistente: os itens não voltam a aparecer após exclusão deliberada.
+const ARCANA_INITIAL_TAXONOMY = {"genres": ["Boys’ Love (BL)", "Girls’ Love (GL)", "Romance", "Ação", "Ficção Científica e Fantasia", "Drama"], "tags": ["Omegaverse (ABO)", "Slice of Life", "Comédia", "Fantasia", "Mundo Fantástico", "Sobrenatural", "NSFW (18+)", "Smut", "Romance Adulto", "Enemies to Lovers", "Friends to Lovers", "Rivals to Lovers", "Slow Burn", "Amor Proibido", "Namoro Falso", "Casamento por Contrato", "Casamento Arranjado", "Segunda Chance", "Amor Não Correspondido", "Reencontro", "Amor de Infância", "Diferença de Idade", "Triângulo Amoroso", "Máfia", "Escolar", "Universitário", "Escritório", "Chefe e Funcionário", "Idols", "Entretenimento", "Realeza", "Nobreza", "Histórico", "Cultivação", "Isekai", "Reencarnação", "Transmigração", "Regressão", "Viagem no Tempo", "Guia e Esper", "Mpreg", "Beastmen", "Kemonomimi", "Angst", "Fluff", "Hurt/Comfort", "Ciúmes", "Obsessão", "Vingança", "Drama Psicológico", "Segredos", "Suspense", "Mistério", "Terror", "Aventura", "Ação", "Tragédia", "Final Feliz", "Final Triste", "Relacionamento Tóxico", "Identidade Secreta", "Protagonista Forte", "Violência", "Temas Sensíveis"]};
+async function ensureInitialTaxonomy(env) {
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS forja_taxonomy_seed_state (
+        seed_key TEXT PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`).run();
+    const seedKey = "arcana-taxonomy-v1";
+    const done = await env.DB.prepare("SELECT seed_key FROM forja_taxonomy_seed_state WHERE seed_key=?").bind(seedKey).first();
+    if (done) return;
+    const statements=[];
+    for (const [type, names] of Object.entries(ARCANA_INITIAL_TAXONOMY)) {
+        const table=type === "genres" ? "forja_genres" : "forja_tags";
+        for (const name of names) {
+            const slug=createWorkSlug(name);
+            statements.push(env.DB.prepare(`INSERT OR IGNORE INTO ${table}(id,name,slug) VALUES(?,?,?)`)
+                .bind(`arcana-${type}-${slug}`,name,slug));
+        }
+    }
+    statements.push(env.DB.prepare("INSERT OR IGNORE INTO forja_taxonomy_seed_state(seed_key) VALUES(?)").bind(seedKey));
+    await env.DB.batch(statements);
+}
+
+async function taxonomyItemApi(request, env, type, id) {
+    if (!["PATCH", "DELETE"].includes(request.method)) return workError("Método não permitido.",405);
+    if (!isSameOrigin(request)) return workError("Origem não autorizada.",403);
+    if (!env.DB) return workError("Serviço indisponível.",503);
+    const table=type==="genres"?"forja_genres":"forja_tags";
+    const relation=type==="genres"?"forja_work_genres":"forja_work_tags";
+    const foreign=type==="genres"?"genre_id":"tag_id";
+    try {
+        const session=await findSession(request,env);
+        if (!session) return workError("Não autenticado.",401);
+        if (!["owner","admin"].includes(session.role)) return workError("Somente a administração pode alterar.",403);
+        const item=await env.DB.prepare(`SELECT id,name,slug FROM ${table} WHERE id=?`).bind(id).first();
+        if (!item) return workError("Item não encontrado.",404);
+        if (request.method==="DELETE") {
+            const usage=await env.DB.prepare(`SELECT COUNT(*) AS total FROM ${relation} WHERE ${foreign}=?`).bind(id).first();
+            if (Number(usage?.total)>0) return workError("Este item está associado a obras. Remova-o das obras antes de excluir.",409);
+            await env.DB.batch([
+                env.DB.prepare(`DELETE FROM ${table} WHERE id=?`).bind(id),
+                env.DB.prepare("INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details) VALUES(?,?,?,?,?,?)")
+                    .bind(session.user_id,`${type}.delete`,type,id,"Classificação excluída.",JSON.stringify({name:item.name}))
+            ]);
+            return json({ok:true,message:"Item excluído."});
+        }
+        const parsed=await readJsonBody(request);
+        if (!parsed.ok) return workError(parsed.error,parsed.status);
+        if (Object.keys(parsed.body).some(k=>k!=="name")) return workError("Campos inválidos.");
+        const name=cleanRequiredText(parsed.body.name,80);
+        if (!name) return workError("Informe o nome.");
+        const slug=createWorkSlug(name);
+        if (!slug) return workError("Nome inválido.");
+        await env.DB.batch([
+            env.DB.prepare(`UPDATE ${table} SET name=?,slug=? WHERE id=?`).bind(name,slug,id),
+            env.DB.prepare("INSERT INTO forja_audit_logs(user_id,action,entity_type,entity_id,description,details) VALUES(?,?,?,?,?,?)")
+                .bind(session.user_id,`${type}.update`,type,id,"Classificação renomeada.",JSON.stringify({before:item.name,after:name}))
+        ]);
+        return json({ok:true,item:{id,name,slug}});
+    } catch(error) {
+        if (/UNIQUE constraint failed/i.test(String(error?.message||""))) return workError("Já existe um item com esse nome.",409);
+        console.error("Taxonomy item failed",error instanceof Error?error.name:"Unknown");
+        return workError("Não foi possível concluir a operação.",500);
+    }
+}
 async function taxonomyApi(request, env, type) {
     const table = type === "genres" ? "forja_genres" : "forja_tags";
     if (!["GET", "POST"].includes(request.method)) return workError("Método não permitido.", 405);
@@ -1624,6 +1690,7 @@ async function taxonomyApi(request, env, type) {
         const session = await findSession(request, env);
         if (!session) return workError("Não autenticado.", 401);
         if (!["owner", "admin", "moderator"].includes(session.role)) return workError("Acesso negado.", 403);
+        await ensureInitialTaxonomy(env);
         if (request.method === "GET") {
             const rows = await env.DB.prepare(`SELECT id,name,slug,created_at FROM ${table} ORDER BY name LIMIT 500`).all();
             return json({ ok: true, items: rows.results || [] });
@@ -2392,6 +2459,8 @@ export default {
         const detailMatch = url.pathname.match(/^\/api\/forja\/works\/([0-9a-f-]{36})$/i);
         if (detailMatch) return workDetailApi(request, env, detailMatch[1]);
         if (url.pathname === "/api/forja/audit") return auditApi(request, env);
+        const taxonomyItemMatch = url.pathname.match(/^\/api\/forja\/(genres|tags)\/([a-zA-Z0-9_-]{1,100})$/);
+        if (taxonomyItemMatch) return taxonomyItemApi(request,env,taxonomyItemMatch[1],taxonomyItemMatch[2]);
         if (url.pathname === "/api/forja/genres") return taxonomyApi(request, env, "genres");
         if (url.pathname === "/api/forja/tags") return taxonomyApi(request, env, "tags");
         if (url.pathname === "/api/forja/chapters") return chaptersApi(request, env);

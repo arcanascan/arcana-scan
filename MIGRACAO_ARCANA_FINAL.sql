@@ -21,9 +21,16 @@ CREATE TABLE IF NOT EXISTS arcana_applications (
  role TEXT NOT NULL,
  experience TEXT NOT NULL DEFAULT '',
  message TEXT NOT NULL DEFAULT '',
+ birth_date TEXT,
+ nickname TEXT,
+ phone TEXT,
+ language TEXT,
  ip_hash TEXT NOT NULL,
  status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new','reviewing','accepted','rejected')),
  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_arcana_applications_ip ON arcana_applications(ip_hash,created_at);
+
+-- Para bancos que já possuem arcana_applications, o Worker adiciona automaticamente
+-- as quatro novas colunas com PRAGMA table_info e ALTER TABLE quando necessário.

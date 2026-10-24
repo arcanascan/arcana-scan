@@ -2101,14 +2101,23 @@ let arcanaTablesPromise = null;
 async function ensureArcanaTables(env) {
     if (!env.DB) throw new Error('D1 indisponível');
     if (!arcanaTablesPromise) {
-        const statements = ["CREATE TABLE IF NOT EXISTS reader_profiles (\n reader_id TEXT PRIMARY KEY REFERENCES reader_users(id) ON DELETE CASCADE,\n avatar TEXT NOT NULL DEFAULT 'nyx' CHECK(avatar IN ('lucien','nyx','elara','coby')),\n photo_key TEXT,\n updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP\n)", "CREATE TABLE IF NOT EXISTS reader_shelves (\n reader_id TEXT NOT NULL REFERENCES reader_users(id) ON DELETE CASCADE,\n work_id TEXT NOT NULL REFERENCES forja_works(id) ON DELETE CASCADE,\n shelf TEXT NOT NULL CHECK(shelf IN ('favoritos','amorzinho','casei-com-a-putaria','vou-sofrer','ler-de-madrugada','meus-xodos')),\n created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n PRIMARY KEY(reader_id,work_id,shelf)\n)", 'CREATE INDEX IF NOT EXISTS idx_reader_shelves_reader ON reader_shelves(reader_id,shelf)', "CREATE TABLE IF NOT EXISTS arcana_applications (\n id TEXT PRIMARY KEY,\n name TEXT NOT NULL,\n email TEXT NOT NULL,\n role TEXT NOT NULL,\n experience TEXT NOT NULL DEFAULT '',\n message TEXT NOT NULL DEFAULT '',\n ip_hash TEXT NOT NULL,\n status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new','reviewing','accepted','rejected')),\n created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP\n)", 'CREATE INDEX IF NOT EXISTS idx_arcana_applications_ip ON arcana_applications(ip_hash,created_at)'];
-        arcanaTablesPromise = (async () => { for (const sql of statements) await env.DB.prepare(sql).run(); })().catch(error => { arcanaTablesPromise = null; throw error; });
+        const statements = ["CREATE TABLE IF NOT EXISTS reader_profiles (\n reader_id TEXT PRIMARY KEY REFERENCES reader_users(id) ON DELETE CASCADE,\n avatar TEXT NOT NULL DEFAULT 'nyx' CHECK(avatar IN ('lucien','nyx','elara','coby')),\n photo_key TEXT,\n updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP\n)", "CREATE TABLE IF NOT EXISTS reader_shelves (\n reader_id TEXT NOT NULL REFERENCES reader_users(id) ON DELETE CASCADE,\n work_id TEXT NOT NULL REFERENCES forja_works(id) ON DELETE CASCADE,\n shelf TEXT NOT NULL CHECK(shelf IN ('favoritos','amorzinho','casei-com-a-putaria','vou-sofrer','ler-de-madrugada','meus-xodos')),\n created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n PRIMARY KEY(reader_id,work_id,shelf)\n)", 'CREATE INDEX IF NOT EXISTS idx_reader_shelves_reader ON reader_shelves(reader_id,shelf)', "CREATE TABLE IF NOT EXISTS arcana_applications (\n id TEXT PRIMARY KEY,\n name TEXT NOT NULL,\n email TEXT NOT NULL,\n role TEXT NOT NULL,\n experience TEXT NOT NULL DEFAULT '',\n message TEXT NOT NULL DEFAULT '',\n birth_date TEXT,\n nickname TEXT,\n phone TEXT,\n language TEXT,\n ip_hash TEXT NOT NULL,\n status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new','reviewing','accepted','rejected')),\n created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP\n)", 'CREATE INDEX IF NOT EXISTS idx_arcana_applications_ip ON arcana_applications(ip_hash,created_at)'];
+        arcanaTablesPromise = (async () => {
+            for (const sql of statements) await env.DB.prepare(sql).run();
+            // Adapta candidaturas antigas sem apagar registros ou recriar a tabela.
+            const existing = await env.DB.prepare('PRAGMA table_info(arcana_applications)').all();
+            const columns = new Set((existing.results||[]).map(c=>c.name));
+            for(const column of ['birth_date','nickname','phone','language']){
+                if(!columns.has(column))await env.DB.prepare(`ALTER TABLE arcana_applications ADD COLUMN ${column} TEXT`).run();
+            }
+        })().catch(error => { arcanaTablesPromise = null; throw error; });
     }
     await arcanaTablesPromise;
 }
 const ARCANA_AVATARS = new Set(['lucien','nyx','elara','coby']);
 const ARCANA_SHELVES = new Set(['amorzinho','casei-com-a-putaria','vou-sofrer','ler-de-madrugada','meus-xodos']);
-const ARCANA_ROLES = ['Tradutor(a)','Revisor(a)','Editor(a)','Cleaner','Redrawer','Typesetter','Uploader','Divulgação'];
+const ARCANA_ROLES = ['Tradutor','Revisor','Editor','Quality Control (QC)','DickDrawer','Organizer','Cleaner'];
+const ARCANA_LANGUAGES = ['Inglês','Espanhol','Coreano','Francês'];
 function readerProfileData(row) {
     return { avatar: row?.avatar || 'nyx', photo_url: row?.photo_key ? '/api/reader/photo' : null };
 }
@@ -2214,7 +2223,7 @@ async function recruitmentApi(request,env,admin=false){
         const user=await findSession(request,env);if(!user)return workError('Não autenticado.',401);
         if(!['owner','admin'].includes(user.role))return workError('Acesso negado.',403);
         try{
-            if(request.method==='GET'){const rows=await env.DB.prepare('SELECT id,name,email,role,experience,message,status,created_at FROM arcana_applications ORDER BY created_at DESC LIMIT 200').all();return json({ok:true,applications:rows.results||[]});}
+            if(request.method==='GET'){const rows=await env.DB.prepare('SELECT id,name,birth_date,nickname,email,phone,role,language,experience,message,status,created_at FROM arcana_applications ORDER BY created_at DESC LIMIT 200').all();return json({ok:true,applications:rows.results||[]});}
             const parsed=await readJsonBody(request);if(!parsed.ok)return workError(parsed.error,parsed.status);
             const {id,status}=parsed.body;
             if(Object.keys(parsed.body).length!==2||!ARCANA_UUID.test(id)||!['new','reviewing','accepted','rejected'].includes(status))return workError('Dados inválidos.');
@@ -2228,16 +2237,26 @@ async function recruitmentApi(request,env,admin=false){
     if(!isSameOrigin(request))return workError('Origem não autorizada.',403);
     const parsed=await readJsonBody(request);if(!parsed.ok)return workError(parsed.error,parsed.status);
     const b=parsed.body;
-    if(Object.keys(b).some(k=>!['name','email','role','experience','message','website'].includes(k)))return workError('Dados inválidos.');
+    if(Object.keys(b).some(k=>!['name','birth_date','nickname','email','phone','role','language','website'].includes(k)))return workError('Dados inválidos.');
     if(b.website)return workError('Envio inválido.',400);
     const name=cleanRequiredText(b.name,100),email=typeof b.email==='string'?b.email.trim().toLowerCase():'',role=b.role;
-    const experience=cleanOptionalText(b.experience,1000),message=cleanOptionalText(b.message,2000);
-    if(!name||!email||email.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!ARCANA_ROLES.includes(role)||experience===undefined||message===undefined)return workError('Preencha os dados corretamente.');
+    const birthDate=typeof b.birth_date==='string'?b.birth_date.trim():'';
+    const nickname=cleanRequiredText(b.nickname,40);
+    const phone=typeof b.phone==='string'?b.phone.trim():'';
+    const language=typeof b.language==='string'?b.language.trim():'';
+    const phoneDigits=phone.replace(/\D/g,'');
+    const validDate=/^\d{4}-\d{2}-\d{2}$/.test(birthDate) &&
+        !Number.isNaN(Date.parse(birthDate)) && new Date(birthDate).toISOString().slice(0,10)===birthDate &&
+        birthDate>='1900-01-01' && birthDate<=new Date().toISOString().slice(0,10);
+    if(!name||!validDate||!nickname||nickname.length<2||!email||email.length>254||
+       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!ARCANA_ROLES.includes(role)||
+       !/^\+?[0-9() .-]+$/.test(phone)||phone.length>25||phoneDigits.length<10||phoneDigits.length>15||
+       (role==='Tradutor'?!ARCANA_LANGUAGES.includes(language):language!==''))return workError('Preencha os dados corretamente.');
     try{
         const ipHash=await getIpHash(request,env.FORJA_AUTH_SECRET||'arcana')||await sha256Hex('arcana:unknown-ip');
         const limit=await env.DB.prepare("SELECT COUNT(*) AS n FROM arcana_applications WHERE ip_hash=? AND created_at>=datetime('now','-24 hours')").bind(ipHash).first();
         if(Number(limit?.n)>=3)return workError('Limite de candidaturas atingido. Tente amanhã.',429);
-        await env.DB.prepare('INSERT INTO arcana_applications(id,name,email,role,experience,message,ip_hash) VALUES(?,?,?,?,?,?,?)').bind(crypto.randomUUID(),name,email,role,experience||'',message||'',ipHash).run();
+        await env.DB.prepare('INSERT INTO arcana_applications(id,name,birth_date,nickname,email,phone,role,language,ip_hash) VALUES(?,?,?,?,?,?,?,?,?)').bind(crypto.randomUUID(),name,birthDate,nickname,email,phone,role,language,ipHash).run();
         return json({ok:true,message:'Candidatura recebida. Obrigada por querer fazer parte da ARCANA!'},201);
     }catch(e){console.error('Recruitment public',e instanceof Error?e.name:'Unknown');return workError('Não foi possível enviar sua candidatura.',500);}
 }
